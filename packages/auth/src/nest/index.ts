@@ -12,6 +12,8 @@ import type { PermissionKey } from '@core/api-contracts';
 import { ACCESS_TOKEN_COOKIE } from '../constants.js';
 import type { AuthClaims } from '../types.js';
 
+export type { AuthClaims } from '../types.js';
+
 export const IS_PUBLIC_KEY = 'core:isPublic';
 export const PERMISSIONS_KEY = 'core:permissions';
 

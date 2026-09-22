@@ -1,0 +1,27 @@
+openapi: 3.0.0
+paths:
+  /health:
+    get:
+      operationId: Health.check
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Health
+info:
+  title: Platform Core API
+  description: Platform Core API documentation
+  version: 1.0.0
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    JWT-auth:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      name: JWT
+      in: header
+  schemas: {}
