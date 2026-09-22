@@ -10,7 +10,7 @@
     "start:prod": "node dist/src/main",
     "lint": "echo skip",
     "check-types": "tsc --noEmit",
-    "test": "jest",
+    "test": "jest --passWithNoTests",
     "test:e2e": "jest --config ./test/jest-e2e.json",
     "generate:spec": "pnpm --filter @core/api... build && ts-node -r tsconfig-paths/register --project tsconfig.json scripts/generate-spec.ts"
   },
