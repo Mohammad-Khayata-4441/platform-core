@@ -289,8 +289,8 @@ Fields: `name` (LocalizedString), `sku`, `price`, `status`. Deleted by the scaff
 ## Phasing
 
 - **P0** — repo skeleton, tooling (`eslint-config`, `typescript-config`, turbo, pnpm, prettier), `.ai/` rules+skills, agent configs, CI.
-- **P1 (first milestone)** — `db-prisma`, `api-contracts`, `backend-core`, `api-client`, `auth`, `apps/api` + `apps/dashboard` skeletons, `items` example slice, codegen pipeline.
-- **P2** — `ui` (shadcn, forms, `generateResource`, dashboard shell) + wire dashboard.
+- **P1 (first milestone)** — `db-prisma`, `api-contracts`, `backend-core`, `api-client`, `auth`, `apps/api` skeleton, `items` example slice (DB → contracts → API → client), codegen pipeline. *(The `apps/dashboard` skeleton and the UI-side example page are part of P2 because they depend on `@core/ui`.)*
+- **P2** — `ui` (shadcn, forms, `generateResource`, dashboard shell) + `apps/dashboard` skeleton + wire the `items` example page.
 - **P3** — `i18n`, `shared`, `seo`, notifications, file upload.
 - **P4** — `scaffold` CLI + in-place `pnpm setup`, docs polish.
 - **Optional** — outbox, desktop/n8n/docs app shells.
