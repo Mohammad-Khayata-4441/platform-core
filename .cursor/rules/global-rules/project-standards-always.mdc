@@ -1,0 +1,61 @@
+---
+description: ERP core standards index — architecture, data flow, commands, and where to find rules/skills/specs. Always loaded.
+globs:
+alwaysApply: true
+---
+
+# ERP — Core Standards
+
+## Stack
+
+| Layer | Package | Path |
+|-------|---------|------|
+| Database | `@core/db-prisma` | `packages/db-prisma` |
+| Contracts | `@core/api-contracts` | `packages/api-contracts` |
+| API | `@core/api` | `apps/api` |
+| HTTP clients | `@core/api-client` | `packages/api-client` |
+| Dashboard | `@core/dashboard` | `apps/dashboard` |
+
+## Critical rules
+
+1. **Never duplicate** types, routes, or DTOs — use `@core/api-contracts`.
+2. **Full-stack flow:** Prisma → api-contracts → NestJS module → api-client → dashboard module.
+3. **Golden reference:** copy the **units** vertical slice for new CRUD entities.
+4. **DB changes:** Prisma migrations only; idempotent seeds.
+5. **Spec-first:** non-trivial features need `docs/superpowers/specs/` before code.
+
+## Path-scoped rules (auto-loaded by glob)
+
+| Editing | Rule |
+|---------|------|
+| `apps/api/**` | `.cursor/rules/nestjs-api.mdc` or `.ai/rules/api.md` |
+| `apps/dashboard/**` | `.cursor/rules/dashboard-nextjs.mdc` or `.ai/rules/dashboard.md` |
+| `packages/db-prisma/**` | `.cursor/rules/prisma-database.mdc` or `.ai/rules/database.md` |
+| `packages/**` | `.cursor/rules/shared-packages.mdc` or `.ai/rules/packages.md` |
+
+## Orchestration skills
+
+| Intent | Skill |
+|--------|-------|
+| Full disciplined cycle | `caveman` (`.ai/skills/caveman/`) |
+| New CRUD entity end-to-end | `add-crud-feature` |
+| Scaffold with file map | `feature-scaffold` |
+| Explore codebase | `project-map` |
+| Dashboard form | `dashboard-form` |
+
+## Commands
+
+```bash
+pnpm dev
+pnpm --filter @core/dashboard dev
+pnpm --filter @core/api dev
+pnpm --filter @core/db-prisma db:migrate:dev
+pnpm turbo run build
+```
+
+## Docs entry points
+
+- Agent guide: `AGENTS.md`
+- AI engineering workflow: `docs/ai-engineering.md`
+- Spec-driven dev: `docs/superpowers/README.md`
+- Product context: `docs/overview.md`, `PRODUCT.md`

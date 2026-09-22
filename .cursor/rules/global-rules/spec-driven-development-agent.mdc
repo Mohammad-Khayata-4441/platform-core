@@ -1,0 +1,61 @@
+---
+description: Spec-driven development workflow — when to write designs, plans, and how agents should use docs/superpowers/. Load when planning features, writing specs, or before large implementations.
+globs:
+alwaysApply: false
+---
+
+# Spec-Driven Development (ERP)
+
+## When to write artifacts
+
+| Change size | Design spec | Implementation plan |
+|-------------|-------------|---------------------|
+| Typo / one-liner fix | No | No |
+| Single-layer bugfix | Optional | No |
+| New UI section or API endpoint | **Yes** | Optional |
+| Full feature / cross-stack change | **Yes** | **Yes** |
+
+## File locations
+
+```
+docs/superpowers/
+├── README.md
+├── templates/
+│   ├── spec-template.md      ← copy for designs
+│   └── plan-template.md      ← copy for task breakdowns
+├── specs/
+│   └── YYYY-MM-DD-<topic>-design.md
+└── plans/
+    └── YYYY-MM-DD-<topic>.md
+```
+
+## Workflow
+
+1. **Brainstorm** (superpowers:brainstorming or `/caveman`) — explore codebase, ask one question at a time, propose 2–3 approaches.
+2. **Design spec** — user approves → write `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`.
+3. **HARD-GATE** — no implementation code until design is explicitly approved.
+4. **Plan** (optional, for large work) — break spec into checkbox tasks in `docs/superpowers/plans/`.
+5. **Implement** — follow layer skills (`add-crud-feature`, path-scoped rules).
+6. **Review + verify** — compare to spec; run `pnpm turbo run build` / lint on touched packages.
+
+## Spec must include
+
+- **Context** — existing files, patterns, golden reference (usually **units**)
+- **Requirements** — functional + non-functional
+- **Proposed approach** — data flow across Prisma → contracts → API → client → dashboard
+- **File map** — create / modify / delete paths
+- **Verification** — commands and manual checks
+- **Out of scope** — explicit boundaries
+
+## Plan must include
+
+- Link to source spec
+- Checkbox tasks (`- [ ]`) with file paths per task
+- Verification command per task group
+- Reference to superpowers:executing-plans or subagent-driven-development for agent workers
+
+## Naming
+
+- Specs: `YYYY-MM-DD-kebab-topic-design.md`
+- Plans: `YYYY-MM-DD-kebab-topic.md` (no `-design` suffix)
+- Use today's date when creating new files
