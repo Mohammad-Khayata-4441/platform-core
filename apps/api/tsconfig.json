@@ -1,0 +1,20 @@
+{
+  "extends": "@core/typescript-config/base.json",
+  "compilerOptions": {
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "ES2023",
+    "outDir": "./dist",
+    "sourceMap": true,
+    "removeComments": true,
+    "incremental": true,
+    "declarationMap": false,
+    "resolvePackageJsonExports": true,
+    "allowSyntheticDefaultImports": true,
+    "forceConsistentCasingInFileNames": true,
+    "baseUrl": "./",
+    "paths": {
+      "@/*": ["src/*"]
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "name": "@core/auth",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
+    "./next": { "types": "./dist/next/index.d.ts", "import": "./dist/next/index.js" },
+    "./middleware": { "types": "./dist/next/middleware.d.ts", "import": "./dist/next/middleware.js" },
+    "./react": { "types": "./dist/react/index.d.ts", "import": "./dist/react/index.js" },
+    "./nest": { "types": "./dist/nest/index.d.ts", "import": "./dist/nest/index.js" }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "echo skip",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@core/api-contracts": "workspace:*"
+  },
+  "peerDependencies": {
+    "@nestjs/common": "^11.0.0",
+    "@nestjs/core": "^11.0.0",
+    "next": ">=15",
+    "react": "^19.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@nestjs/common": { "optional": true },
+    "@nestjs/core": { "optional": true },
+    "next": { "optional": true },
+    "react": { "optional": true }
+  },
+  "devDependencies": {
+    "@core/typescript-config": "workspace:*",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@types/node": "^22.0.0",
+    "reflect-metadata": "^0.2.2",
+    "typescript": "5.9.2",
+    "vitest": "^2.1.8"
+  }
+}

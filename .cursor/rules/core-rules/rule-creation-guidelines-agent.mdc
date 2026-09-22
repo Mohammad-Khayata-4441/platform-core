@@ -1,0 +1,65 @@
+---
+description: Rule and Skill creation standards for this project. Apply when creating, editing, or reviewing .cursor/rules/*.mdc or .ai/skills/*/SKILL.md files.
+globs:
+alwaysApply: false
+---
+
+# Rule & Skill Creation Standards
+
+## 3-Tier Rule Architecture
+
+| Tier | Config | Max Lines | Use for |
+|------|--------|-----------|---------|
+| 1 — Always | `alwaysApply: true`, no globs | 50 | Critical non-negotiable constraints |
+| 2 — Auto | `alwaysApply: false` + specific globs | 150 | File-type / path patterns |
+| 3 — Agent | `alwaysApply: false`, no globs | 200 | Reference docs loaded on demand |
+
+**Never use `**/*` or `src/**/*` broad globs** — it defeats Tier 2 and bloats every session.
+
+## Canonical vs Cursor
+
+| Location | Role |
+|----------|------|
+| `.ai/rules/*.md` | **Canonical** — portable across Claude, OpenCode, Copilot |
+| `.ai/skills/*/SKILL.md` | **Canonical** — layer workflows, imports, orchestration |
+| `.cursor/rules/**/*.mdc` | **Cursor** — tiered `.mdc` with globs + `alwaysApply` |
+| `.cursor/skills/*/SKILL.md` | **Cursor** — mirror of `.ai/skills/` for Cursor discovery |
+
+When adding a rule: update `.ai/rules/` first, then add or sync the matching `.cursor/rules/**/*.mdc`.
+
+## Folder Structure (`.cursor/rules/`)
+
+```
+global-rules/     ← alwaysApply: true, ≤50 lines (monorepo, code-quality)
+api-rules/        ← apps/api/** patterns
+dashboard-rules/  ← apps/dashboard/** patterns
+database-rules/   ← packages/db-prisma/** patterns
+packages-rules/   ← packages/** (non-db) patterns
+core-rules/       ← rule/skill authoring (this file)
+```
+
+## File Naming
+
+```
+{topic}-{always|auto|agent|manual}.mdc
+```
+
+Examples: `project-standards-always.mdc`, `nestjs-api-auto.mdc`
+
+## Skills vs Rules
+
+| | Rule (`.mdc` / `.md`) | Skill (`SKILL.md`) |
+|--|----------------------|-------------------|
+| Purpose | Persistent constraints & patterns | Step-by-step workflow |
+| Size | ≤200 lines | ≤500 lines |
+| Use for | "Always use api-contracts DTOs" | "How to add a full-stack CRUD entity" |
+| Example | dashboard table conventions | `add-crud-feature`, `caveman` |
+
+## Quality Checklist
+
+- [ ] Metadata YAML at top (description, globs, alwaysApply)
+- [ ] `alwaysApply: true` only if ≤50 lines and truly global
+- [ ] No broad globs (`**/*`, `src/**/*`)
+- [ ] Code examples over prose
+- [ ] No duplicate content across rules — link to `.ai/` or skills instead
+- [ ] ERP golden reference cited: **units** vertical slice

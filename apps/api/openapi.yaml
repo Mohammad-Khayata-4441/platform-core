@@ -1,0 +1,1003 @@
+openapi: 3.0.0
+paths:
+  /health:
+    get:
+      operationId: Health.check
+      parameters: []
+      responses:
+        '200':
+          description: ''
+      tags:
+        - Health
+  /example/items:
+    get:
+      operationId: Items.list
+      parameters:
+        - name: page
+          required: false
+          in: query
+          description: Page number (1-based)
+          schema:
+            default: 1
+            example: 1
+            type: number
+        - name: limit
+          required: false
+          in: query
+          description: Number of items per page
+          schema:
+            default: 10
+            example: 10
+            type: number
+        - name: sortField
+          required: false
+          in: query
+          description: Field name to sort by
+          schema:
+            example: createdAt
+            type: string
+        - name: sortOrder
+          required: false
+          in: query
+          schema:
+            default: asc
+            example: asc
+            type: string
+            enum:
+              - asc
+              - desc
+        - name: search
+          required: false
+          in: query
+          description: Full-text search keyword
+          schema:
+            example: ''
+            type: string
+        - name: searchIn
+          required: false
+          in: query
+          description: Comma-separated field names to search within (e.g. name,symbol)
+          schema:
+            example: ''
+            type: string
+        - name: filters
+          required: false
+          in: query
+          style: deepObject
+          explode: true
+          description: >-
+            Structured filters. Example:
+            filters[sku][$like]=sample-sku&filters[status][$eq]=DRAFT
+          schema:
+            type: object
+            properties:
+              sku:
+                type: object
+                description: Filter on `sku` (string)
+                properties:
+                  $eq:
+                    type: string
+                  $like:
+                    type: string
+                    example: sample-sku
+                  $in:
+                    type: array
+                    items:
+                      type: string
+                  $isNull:
+                    type: boolean
+                    enum:
+                      - true
+                example:
+                  $like: sample-sku
+              status:
+                type: object
+                description: Filter on `status` (enum)
+                properties:
+                  $eq:
+                    type: string
+                    enum:
+                      - DRAFT
+                      - ACTIVE
+                      - ARCHIVED
+                    example: DRAFT
+                  $in:
+                    type: array
+                    items:
+                      type: string
+                      enum:
+                        - DRAFT
+                        - ACTIVE
+                        - ARCHIVED
+                  $isNull:
+                    type: boolean
+                    enum:
+                      - true
+                example:
+                  $eq: DRAFT
+            example:
+              sku:
+                $like: sample-sku
+              status:
+                $eq: DRAFT
+      responses:
+        '200':
+          description: Paginated success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponseDto'
+                  - properties:
+                      data:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/ItemResponseDto'
+                      meta:
+                        type: object
+                        properties:
+                          pagination:
+                            type: object
+                            properties:
+                              total:
+                                type: number
+                                example: 0
+                              page:
+                                type: number
+                                example: 1
+                              limit:
+                                type: number
+                                example: 10
+                              totalPages:
+                                type: number
+                                example: 0
+                          filterOptions:
+                            type: array
+                            example:
+                              - field: sku
+                                type: string
+                                operators:
+                                  - $eq
+                                  - $like
+                                  - $in
+                                  - $isNull
+                              - field: status
+                                type: enum
+                                operators:
+                                  - $eq
+                                  - $in
+                                  - $isNull
+                                enumValues:
+                                  - DRAFT
+                                  - ACTIVE
+                                  - ARCHIVED
+        '401':
+          description: JWT token is missing, expired, or invalid
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Unauthorized
+                  data: null
+                  error:
+                    code: UNAUTHORIZED
+                    message: JWT token is missing, expired, or invalid
+        '403':
+          description: Insufficient permissions to perform this action
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Forbidden
+                  data: null
+                  error:
+                    code: FORBIDDEN
+                    message: Insufficient permissions to perform this action
+        '404':
+          description: The requested resource was not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Not found
+                  data: null
+                  error:
+                    code: NOT_FOUND
+                    message: The requested resource was not found
+        '422':
+          description: Request body validation failed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Validation failed
+                  data: null
+                  error:
+                    code: VALIDATION_ERROR
+                    message: Validation failed
+                    details:
+                      - field: email
+                        message: email must be a valid email address
+                        code: isEmail
+        '500':
+          description: An unexpected internal server error occurred
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Internal server error
+                  data: null
+                  error:
+                    code: INTERNAL_ERROR
+                    message: Internal server error
+      summary: List items
+      tags:
+        - Items
+    post:
+      operationId: Items.create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateItemDto'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponseDto'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/ItemResponseDto'
+        '401':
+          description: JWT token is missing, expired, or invalid
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Unauthorized
+                  data: null
+                  error:
+                    code: UNAUTHORIZED
+                    message: JWT token is missing, expired, or invalid
+        '403':
+          description: Insufficient permissions to perform this action
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Forbidden
+                  data: null
+                  error:
+                    code: FORBIDDEN
+                    message: Insufficient permissions to perform this action
+        '404':
+          description: The requested resource was not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Not found
+                  data: null
+                  error:
+                    code: NOT_FOUND
+                    message: The requested resource was not found
+        '422':
+          description: Request body validation failed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Validation failed
+                  data: null
+                  error:
+                    code: VALIDATION_ERROR
+                    message: Validation failed
+                    details:
+                      - field: email
+                        message: email must be a valid email address
+                        code: isEmail
+        '500':
+          description: An unexpected internal server error occurred
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Internal server error
+                  data: null
+                  error:
+                    code: INTERNAL_ERROR
+                    message: Internal server error
+      summary: Create an item
+      tags:
+        - Items
+    delete:
+      operationId: Items.bulkDelete
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkDeleteBodyDto'
+      responses:
+        '200':
+          description: Bulk delete result ({ total, succeeded, failed, errors })
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkResultResponseDto'
+      summary: Bulk delete by ids
+      tags:
+        - Items
+    patch:
+      operationId: Items.bulkUpdate
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BulkUpdateBody'
+      responses:
+        '200':
+          description: Bulk partial-update result ({ total, succeeded, failed, errors })
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BulkResultResponseDto'
+      summary: Bulk partial update
+      tags:
+        - Items
+  /example/items/{id}:
+    get:
+      operationId: Items.show
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Resource UUID
+          schema:
+            example: 018e1234-abcd-7000-a001-000000000001
+            type: string
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponseDto'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/ItemResponseDto'
+        '401':
+          description: JWT token is missing, expired, or invalid
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Unauthorized
+                  data: null
+                  error:
+                    code: UNAUTHORIZED
+                    message: JWT token is missing, expired, or invalid
+        '403':
+          description: Insufficient permissions to perform this action
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Forbidden
+                  data: null
+                  error:
+                    code: FORBIDDEN
+                    message: Insufficient permissions to perform this action
+        '404':
+          description: The requested resource was not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Not found
+                  data: null
+                  error:
+                    code: NOT_FOUND
+                    message: The requested resource was not found
+        '422':
+          description: Request body validation failed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Validation failed
+                  data: null
+                  error:
+                    code: VALIDATION_ERROR
+                    message: Validation failed
+                    details:
+                      - field: email
+                        message: email must be a valid email address
+                        code: isEmail
+        '500':
+          description: An unexpected internal server error occurred
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Internal server error
+                  data: null
+                  error:
+                    code: INTERNAL_ERROR
+                    message: Internal server error
+      summary: Get an item
+      tags:
+        - Items
+    patch:
+      operationId: Items.update
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Resource UUID
+          schema:
+            example: 018e1234-abcd-7000-a001-000000000001
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateItemDto'
+      responses:
+        '200':
+          description: Success
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiSuccessResponseDto'
+                  - properties:
+                      data:
+                        $ref: '#/components/schemas/ItemResponseDto'
+        '401':
+          description: JWT token is missing, expired, or invalid
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Unauthorized
+                  data: null
+                  error:
+                    code: UNAUTHORIZED
+                    message: JWT token is missing, expired, or invalid
+        '403':
+          description: Insufficient permissions to perform this action
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Forbidden
+                  data: null
+                  error:
+                    code: FORBIDDEN
+                    message: Insufficient permissions to perform this action
+        '404':
+          description: The requested resource was not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Not found
+                  data: null
+                  error:
+                    code: NOT_FOUND
+                    message: The requested resource was not found
+        '422':
+          description: Request body validation failed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Validation failed
+                  data: null
+                  error:
+                    code: VALIDATION_ERROR
+                    message: Validation failed
+                    details:
+                      - field: email
+                        message: email must be a valid email address
+                        code: isEmail
+        '500':
+          description: An unexpected internal server error occurred
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Internal server error
+                  data: null
+                  error:
+                    code: INTERNAL_ERROR
+                    message: Internal server error
+      summary: Update an item
+      tags:
+        - Items
+    delete:
+      operationId: Items.delete
+      parameters:
+        - name: id
+          required: true
+          in: path
+          description: Resource UUID
+          schema:
+            example: 018e1234-abcd-7000-a001-000000000001
+            type: string
+      responses:
+        '204':
+          description: Deleted successfully
+        '401':
+          description: JWT token is missing, expired, or invalid
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Unauthorized
+                  data: null
+                  error:
+                    code: UNAUTHORIZED
+                    message: JWT token is missing, expired, or invalid
+        '403':
+          description: Insufficient permissions to perform this action
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Forbidden
+                  data: null
+                  error:
+                    code: FORBIDDEN
+                    message: Insufficient permissions to perform this action
+        '404':
+          description: The requested resource was not found
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Not found
+                  data: null
+                  error:
+                    code: NOT_FOUND
+                    message: The requested resource was not found
+        '422':
+          description: Request body validation failed
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Validation failed
+                  data: null
+                  error:
+                    code: VALIDATION_ERROR
+                    message: Validation failed
+                    details:
+                      - field: email
+                        message: email must be a valid email address
+                        code: isEmail
+        '500':
+          description: An unexpected internal server error occurred
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: '#/components/schemas/ApiErrorResponseDto'
+                example:
+                  status: error
+                  message: Internal server error
+                  data: null
+                  error:
+                    code: INTERNAL_ERROR
+                    message: Internal server error
+      summary: Delete an item
+      tags:
+        - Items
+info:
+  title: Platform Core API
+  description: Platform Core API documentation
+  version: 1.0.0
+  contact: {}
+tags: []
+servers: []
+components:
+  securitySchemes:
+    JWT-auth:
+      scheme: bearer
+      bearerFormat: JWT
+      type: http
+      name: JWT
+      in: header
+  schemas:
+    PaginationMetaDto:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 50
+        page:
+          type: number
+          example: 1
+        limit:
+          type: number
+          example: 10
+        totalPages:
+          type: number
+          example: 5
+      required:
+        - total
+        - page
+        - limit
+    ListFilterFieldDto:
+      type: object
+      properties:
+        field:
+          type: string
+          example: name
+        type:
+          type: string
+          example: string
+          enum:
+            - string
+            - number
+            - boolean
+            - date
+            - enum
+            - id
+        operators:
+          type: array
+          example:
+            - $eq
+            - $like
+            - $in
+            - $isNull
+          items:
+            type: string
+            enum:
+              - $eq
+              - $like
+              - $gte
+              - $lte
+              - $in
+              - $isNull
+        enumValues:
+          example:
+            - active
+            - draft
+          type: array
+          items:
+            type: string
+        foreignResourceKey:
+          type: string
+          example: categories
+      required:
+        - field
+        - type
+        - operators
+    ApiMetaDto:
+      type: object
+      properties:
+        pagination:
+          $ref: '#/components/schemas/PaginationMetaDto'
+        filterOptions:
+          description: Filterable fields and allowed operators for this list resource
+          type: array
+          items:
+            $ref: '#/components/schemas/ListFilterFieldDto'
+    ApiSuccessResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Operation successful
+        meta:
+          $ref: '#/components/schemas/ApiMetaDto'
+      required:
+        - status
+        - message
+    ItemResponseDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            ar: منتج
+            en: Item
+        sku:
+          type: string
+          example: SKU-1
+        price:
+          type: number
+          example: 10
+        status:
+          type: string
+          example: DRAFT
+          enum:
+            - DRAFT
+            - ACTIVE
+            - ARCHIVED
+        createdAt:
+          type: string
+        updatedAt:
+          type: string
+      required:
+        - id
+        - name
+        - sku
+        - price
+        - status
+        - createdAt
+        - updatedAt
+    ApiFieldErrorDto:
+      type: object
+      properties:
+        field:
+          type: string
+          example: email
+        message:
+          type: string
+          example: email must be a valid email address
+        code:
+          type: string
+          example: isEmail
+      required:
+        - field
+        - message
+    ApiErrorDto:
+      type: object
+      properties:
+        code:
+          type: string
+          example: VALIDATION_ERROR
+        message:
+          type: string
+          example: Validation failed
+        details:
+          type: array
+          items:
+            $ref: '#/components/schemas/ApiFieldErrorDto'
+      required:
+        - code
+        - message
+    ApiErrorResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: error
+        message:
+          type: string
+          example: Validation failed
+        data:
+          type: object
+          nullable: true
+          default: null
+          example: null
+          description: Always null on error responses
+        error:
+          $ref: '#/components/schemas/ApiErrorDto'
+      required:
+        - status
+        - message
+        - data
+        - error
+    CreateItemDto:
+      type: object
+      properties:
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            ar: منتج
+            en: Item
+        sku:
+          type: string
+          example: SKU-1
+        price:
+          type: number
+          example: 10
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - ACTIVE
+            - ARCHIVED
+          example: DRAFT
+      required:
+        - name
+        - sku
+        - price
+    UpdateItemDto:
+      type: object
+      properties:
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            ar: منتج
+            en: Item
+        sku:
+          type: string
+          example: SKU-1
+        price:
+          type: number
+          example: 20
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - ACTIVE
+            - ARCHIVED
+          example: ACTIVE
+    BulkDeleteBodyDto:
+      type: object
+      properties:
+        ids:
+          example:
+            - 018e1234-abcd-7000-a001-000000000001
+          type: array
+          items:
+            type: string
+      required:
+        - ids
+    BulkErrorDto:
+      type: object
+      properties:
+        id:
+          type: string
+        message:
+          type: string
+          example: Resource not found
+      required:
+        - message
+    BulkResultResponseDto:
+      type: object
+      properties:
+        total:
+          type: number
+          example: 5
+        succeeded:
+          type: number
+          example: 4
+        failed:
+          type: number
+          example: 1
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkErrorDto'
+      required:
+        - total
+        - succeeded
+        - failed
+        - errors
+    BulkUpdateItem:
+      type: object
+      properties:
+        name:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            ar: منتج
+            en: Item
+        sku:
+          type: string
+          example: SKU-1
+        price:
+          type: number
+          example: 20
+        status:
+          type: string
+          enum:
+            - DRAFT
+            - ACTIVE
+            - ARCHIVED
+          example: ACTIVE
+        id:
+          type: string
+          example: 018e1234-abcd-7000-a001-000000000001
+      required:
+        - id
+    BulkUpdateBody:
+      type: object
+      properties:
+        items:
+          description: Items to update. Each item is { id, ...partial update fields }.
+          type: array
+          items:
+            $ref: '#/components/schemas/BulkUpdateItem'
+      required:
+        - items
