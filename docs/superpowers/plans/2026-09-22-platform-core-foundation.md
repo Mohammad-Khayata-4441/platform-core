@@ -18,7 +18,7 @@
 - **Single-tenant by default**; tenancy is opt-in via an injected resolver.
 - **RBAC:** `@core` defines the guard/decorator + an open `PermissionKey` type; the consuming app supplies the catalog.
 - **Locales:** `ar` + `en`, RTL-safe (logical CSS only). Core UI strings must be i18n-driven.
-- **Response envelope:** `{ message, data, error?, meta? }`; HTTP status codes only, never a `status` field in the body.
+- **Response envelope:** `{ status, message, data, error?, meta? }` (`status` is `"success" | "error"`); HTTP status codes are also set on the response.
 - Every task ends green on `pnpm lint`, `pnpm check-types`, and `pnpm build` (or the task's stated subset) before its commit.
 - Source repos (read-only references): `../e-dukan` and `../devloggers/erp` relative to the repo root.
 

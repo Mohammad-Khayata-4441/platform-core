@@ -259,7 +259,7 @@ Fields: `name` (LocalizedString), `sku`, `price`, `status`. Deleted by the scaff
 
 ## Error handling
 
-- Single envelope `{ message, data, error?, meta? }`; **HTTP status only** (no `status` field in body).
+- Single envelope `{ status, message, data, error?, meta? }`; `status` is `"success" | "error"` and the HTTP status code is set too.
 - `ApiErrorCode` + `FieldError[]`; validation factory maps class-validator errors; global exception filter normalizes everything.
 - Client surfaces `ApiError` with `.code` and `.validationErrors`.
 

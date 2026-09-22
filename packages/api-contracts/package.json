@@ -1,0 +1,35 @@
+{
+  "name": "@core/api-contracts",
+  "version": "0.0.0",
+  "private": true,
+  "main": "./dist/src/index.js",
+  "types": "./dist/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/src/index.d.ts",
+      "import": "./dist/src/index.js",
+      "require": "./dist/src/index.js"
+    },
+    "./types": {
+      "types": "./types/index.ts",
+      "import": "./types/index.ts",
+      "require": "./types/index.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "lint": "echo skip",
+    "check-types": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "zod": "^4.3.6"
+  },
+  "devDependencies": {
+    "@core/typescript-config": "workspace:*",
+    "@types/node": "^22.0.0",
+    "typescript": "5.9.2",
+    "vitest": "^2.1.8"
+  }
+}
