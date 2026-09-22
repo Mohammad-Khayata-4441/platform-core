@@ -1,0 +1,14 @@
+{
+  "name": "@core/scaffold",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "bin": { "create-core-app": "./bin/create-core-app.mjs" },
+  "scripts": {
+    "build": "echo skip",
+    "lint": "echo skip",
+    "check-types": "echo skip",
+    "test": "echo skip"
+  },
+  "engines": { "node": ">=20" }
+}

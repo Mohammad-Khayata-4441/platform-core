@@ -7,4 +7,4 @@ console.log('\nNext steps:');
 console.log('  pnpm install');
 console.log('  cp apps/api/.env.example apps/api/.env');
 console.log('  cp packages/db-prisma/.env.example packages/db-prisma/.env');
-console.log('  pnpm --filter @core/db-prisma db:migrate:dev');
+console.log(`  pnpm --filter @${answers.scope}/db-prisma db:migrate:dev`);

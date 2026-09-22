@@ -127,16 +127,17 @@ export async function scaffold({
 
   console.log(`Scaffolding "${name}" (scope @${scope}) in ${root}`);
 
-  // 1. Rename scope across the repo.
+  // 1. Remove the example slice (before renaming scope — it rewrites files with
+  //    @core/ imports that the rename step below then converts).
+  pruneExampleSlice(root);
+  // 2. Optional packages (also strips @core/* deps before the rename).
+  pruneOptionalPackages(root, { keepUi, keepAuth });
+  // 3. Rename scope across the repo.
   replaceInFiles(root, '@core/', `@${scope}/`);
-  // 2. Rename the root package.
+  // 4. Rename the root package.
   editFile(join(root, 'package.json'), (text) =>
     text.replace(/"name":\s*"platform-core"/, `"name": "${name}"`),
   );
-  // 3. Remove the example slice.
-  pruneExampleSlice(root);
-  // 4. Optional packages.
-  pruneOptionalPackages(root, { keepUi, keepAuth });
 
   // 5. Reset git history.
   if (resetGit) {
