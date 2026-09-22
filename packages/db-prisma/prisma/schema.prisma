@@ -6,3 +6,17 @@ generator client {
   provider = "prisma-client-js"
   output   = "../generated/client"
 }
+
+/// EXAMPLE — remove via the scaffold CLI.
+model Item {
+  id        String   @id @default(cuid())
+  tenantId  String   @default("demo")
+  name      Json
+  sku       String
+  price     Decimal  @db.Decimal(12, 2)
+  status    String   @default("DRAFT")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([tenantId, sku])
+}

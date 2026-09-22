@@ -1,9 +1,11 @@
-import { Module, ValidationPipe } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiExceptionFilter, validationExceptionFactory } from '@core/backend-core';
 import { PrismaModule } from '@core/db-prisma/nest';
 import { HealthController } from './health/health.controller';
+import { ItemsModule } from './modules/example/items/items.module';
+import { demoUserMiddleware } from './common/middleware/demo-user.middleware';
 import configuration from './config/configuration';
 import { envValidationSchema } from './config/envValidator';
 
@@ -16,6 +18,7 @@ import { envValidationSchema } from './config/envValidator';
       load: [configuration],
     }),
     PrismaModule,
+    ItemsModule,
   ],
   controllers: [HealthController],
   providers: [
@@ -35,4 +38,9 @@ import { envValidationSchema } from './config/envValidator';
     //   { provide: ACCESS_TOKEN_VERIFIER, useValue: myVerifier }
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    // EXAMPLE-ONLY: replace with real auth. See @core/auth.
+    consumer.apply(demoUserMiddleware).forRoutes('*');
+  }
+}
