@@ -13,7 +13,7 @@ export type ResourceCreateButtonProps = {
 }
 
 export function ResourceCreateButton({
-    label = "إضافة",
+    label = "Create",
     icon = <Plus />,
     className,
 }: ResourceCreateButtonProps) {

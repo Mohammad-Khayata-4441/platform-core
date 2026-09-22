@@ -25,7 +25,7 @@ export type MobileDashboardLayoutProps = {
 
 export default function MobileDashboardLayout({
   children,
-  menuTitle = "القائمة",
+  menuTitle = "Menu",
   mobileMenuFooter,
 }: MobileDashboardLayoutProps) {
   const rawPathname = usePathname();
@@ -74,7 +74,7 @@ export default function MobileDashboardLayout({
             <SheetTrigger asChild>
               <button className="flex flex-col items-center justify-center gap-1 px-3 py-2 rounded-lg transition-colors min-w-16 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-100">
                 <Menu className="h-6 w-6" />
-                <span className="text-xs font-medium">المزيد</span>
+                <span className="text-xs font-medium">More</span>
               </button>
             </SheetTrigger>
             <SheetContent side="bottom" className="h-[80vh] rounded-t-[20px]">
