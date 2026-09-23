@@ -14,7 +14,10 @@ Turborepo + **pnpm** template monorepo holding the shared, domain-free core used
 | HTTP clients | `@core/api-client` | `packages/api-client` |
 | Backend kernel | `@core/backend-core` | `packages/backend-core` |
 | Auth | `@core/auth` | `packages/auth` |
-| UI | `@core/ui` | `packages/ui` (P2) |
+| i18n | `@core/i18n` | `packages/i18n` |
+| Shared utils | `@core/shared` | `packages/shared` |
+| SEO | `@core/seo` | `packages/seo` |
+| UI | `@core/ui` | `packages/ui` |
 | Dashboard | `@core/dashboard` | `apps/dashboard` (P2) |
 
 ## Before you change code

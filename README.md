@@ -52,6 +52,14 @@ Non-interactive (CI): set `SCAFFOLD_NAME`, `SCAFFOLD_SCOPE`, `SCAFFOLD_KEEP_UI`,
 | `@core/backend-core` | NestJS CRUD kernel (repository/service/controller/presenter), RBAC, import/export |
 | `@core/api-client` | `openapi-fetch` client, `CrudClient`, React Query hooks |
 | `@core/auth` | Cookie-JWT toolkit (`./next`, `./nest`, `./react`, `./middleware`) |
+| `@core/i18n` | Locales (ar/en + RTL), next-intl factories, Nest adapter |
+| `@core/shared` | Formatters, subdomain, print/download helpers |
+| `@core/seo` | Metadata/JSON-LD/sitemap/robots factories |
+| `@core/ui` | shadcn primitives, RHF forms, `generateResource`, dashboard shell |
+| `@core/scaffold` | `create-core-app` CLI |
+
+**Localization:** default locale is `ar` (RTL); `en` is included. Push
+notifications/FCM and the file-upload subsystem are not part of the core yet.
 
 ## Golden reference: items slice (EXAMPLE)
 
