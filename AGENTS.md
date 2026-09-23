@@ -95,9 +95,12 @@ pnpm lint
 pnpm check-types
 pnpm test
 pnpm generate                       # regenerate OpenAPI types (API must be running)
+pnpm setup                          # scaffold this repo in place (rename scope, prune example)
 pnpm --filter @core/api dev
 pnpm --filter @core/db-prisma db:migrate:dev
 ```
+
+**Scaffolding a new project:** `node packages/scaffold/bin/create-core-app.mjs <dir>` (see `packages/scaffold/README.md`).
 
 **Verification order:** `pnpm lint` → `pnpm check-types` → `pnpm build` → `pnpm test`.
 

@@ -8,6 +8,7 @@
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
+    "setup": "node scripts/setup.mjs",
     "generate": "pnpm --filter @core/api generate:spec && pnpm --filter @core/api-contracts build"
   },
   "devDependencies": {
