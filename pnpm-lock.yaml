@@ -132,6 +132,9 @@ importers:
       '@core/auth':
         specifier: workspace:*
         version: link:../../packages/auth
+      '@core/i18n':
+        specifier: workspace:*
+        version: link:../../packages/i18n
       '@core/ui':
         specifier: workspace:*
         version: link:../../packages/ui
@@ -147,6 +150,9 @@ importers:
       next:
         specifier: 15.5.4
         version: 15.5.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-intl:
+        specifier: ^4.12.0
+        version: 4.14.6(@swc/helpers@0.5.23)(next@15.5.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -507,6 +513,9 @@ importers:
       next:
         specifier: '>=15'
         version: 16.3.5(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-intl:
+        specifier: ^4.12.0
+        version: 4.14.6(@swc/helpers@0.5.23)(next@16.3.5(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)
       next-themes:
         specifier: ^0.4.6
         version: 0.4.6(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
@@ -13323,6 +13332,23 @@ snapshots:
       icu-minify: 4.14.6
       negotiator: 1.1.0
       next: 15.5.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
+      next-intl-swc-plugin-extractor: 4.14.6
+      react: 19.3.0
+      use-intl: 4.14.6(react@19.3.0)
+    transitivePeerDependencies:
+      - '@swc/helpers'
+
+  next-intl@4.14.6(@swc/helpers@0.5.23)(next@16.3.5(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0):
+    dependencies:
+      '@eloqnt/config': 0.1.0
+      '@eloqnt/format-json': 0.1.0
+      '@eloqnt/format-po': 0.1.0
+      '@formatjs/intl-localematcher': 0.8.14
+      '@parcel/watcher': 2.6.0
+      '@swc/core': 1.16.2(@swc/helpers@0.5.23)
+      icu-minify: 4.14.6
+      negotiator: 1.1.0
+      next: 16.3.5(@types/node@22.20.4)(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
       next-intl-swc-plugin-extractor: 4.14.6
       react: 19.3.0
       use-intl: 4.14.6(react@19.3.0)
