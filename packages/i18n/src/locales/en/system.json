@@ -1,0 +1,86 @@
+{
+  "system": {
+    "confirm": {
+      "title": "Title",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "resourceFilter": {
+      "operators": {
+        "eq": "Eq",
+        "like": "Like",
+        "gte": "Gte",
+        "lte": "Lte",
+        "in": "In",
+        "isNull": "Is Null"
+      },
+      "where": "Where",
+      "and": "And",
+      "removeRule": "Remove Rule",
+      "button": "Button",
+      "title": "Title",
+      "addFilter": "Add Filter",
+      "clearAll": "Clear All",
+      "apply": "Apply"
+    },
+    "resource": {
+      "deleteTitle": "Delete Title",
+      "deleteDescription": "Delete Description",
+      "deleteConfirm": "Delete Confirm",
+      "toastDeleting": "Toast Deleting",
+      "toastDeleted": "Toast Deleted",
+      "toastDeleteFailed": "Toast Delete Failed"
+    },
+    "resourceSearch": {
+      "placeholder": "Placeholder",
+      "clear": "Clear"
+    },
+    "resourcePagination": {
+      "summary": "Summary",
+      "rowsPerPage": "Rows Per Page",
+      "firstPage": "First Page",
+      "previousPage": "Previous Page",
+      "nextPage": "Next Page",
+      "lastPage": "Last Page"
+    },
+    "dataView": {
+      "summary": "Summary",
+      "rowsPerPage": "Rows Per Page",
+      "sortAsc": "Sort Asc",
+      "sortDesc": "Sort Desc",
+      "sortMenu": "Sort Menu",
+      "clearSort": "Clear Sort",
+      "hideColumn": "Hide Column",
+      "empty": "Empty",
+      "emptyDescription": "Empty Description",
+      "firstPage": "First Page",
+      "previousPage": "Previous Page",
+      "nextPage": "Next Page",
+      "lastPage": "Last Page"
+    },
+    "selectionToolbar": {
+      "selected": "Selected",
+      "clear": "Clear"
+    },
+    "tableActions": {
+      "header": "Header",
+      "openMenu": "Open Menu",
+      "edit": "Edit",
+      "delete": "Delete"
+    },
+    "booleanCell": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "resourceForm": {
+      "updateFailed": "Update Failed",
+      "createFailed": "Create Failed",
+      "updating": "Updating",
+      "creating": "Creating",
+      "update": "Update",
+      "create": "Create",
+      "updated": "Updated",
+      "created": "Created"
+    }
+  }
+}
