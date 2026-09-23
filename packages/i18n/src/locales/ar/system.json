@@ -1,0 +1,86 @@
+{
+  "system": {
+    "confirm": {
+      "title": "Title",
+      "cancel": "إلغاء",
+      "confirm": "تأكيد"
+    },
+    "resourceFilter": {
+      "operators": {
+        "eq": "Eq",
+        "like": "Like",
+        "gte": "Gte",
+        "lte": "Lte",
+        "in": "In",
+        "isNull": "Is Null"
+      },
+      "where": "Where",
+      "and": "و",
+      "removeRule": "إزالة",
+      "button": "زر",
+      "title": "Title",
+      "addFilter": "إضافة فلتر",
+      "clearAll": "مسح الكل",
+      "apply": "تطبيق"
+    },
+    "resource": {
+      "deleteTitle": "تأكيد الحذف",
+      "deleteDescription": "لا يمكن التراجع عن هذا الإجراء.",
+      "deleteConfirm": "نعم، احذف",
+      "toastDeleting": "Toast Deleting",
+      "toastDeleted": "Toast Deleted",
+      "toastDeleteFailed": "Toast Delete Failed"
+    },
+    "resourceSearch": {
+      "placeholder": "بحث...",
+      "clear": "مسح"
+    },
+    "resourcePagination": {
+      "summary": "الملخص",
+      "rowsPerPage": "صفوف لكل صفحة",
+      "firstPage": "الأولى",
+      "previousPage": "السابقة",
+      "nextPage": "التالية",
+      "lastPage": "الأخيرة"
+    },
+    "dataView": {
+      "summary": "الملخص",
+      "rowsPerPage": "صفوف لكل صفحة",
+      "sortAsc": "ترتيب تصاعدي",
+      "sortDesc": "ترتيب تنازلي",
+      "sortMenu": "خيارات الترتيب",
+      "clearSort": "إلغاء الترتيب",
+      "hideColumn": "إخفاء العمود",
+      "empty": "لا توجد بيانات",
+      "emptyDescription": "لم يتم العثور على عناصر.",
+      "firstPage": "الأولى",
+      "previousPage": "السابقة",
+      "nextPage": "التالية",
+      "lastPage": "الأخيرة"
+    },
+    "selectionToolbar": {
+      "selected": "محدد",
+      "clear": "مسح"
+    },
+    "tableActions": {
+      "header": "العنوان",
+      "openMenu": "فتح القائمة",
+      "edit": "تعديل",
+      "delete": "حذف"
+    },
+    "booleanCell": {
+      "active": "نشط",
+      "inactive": "Inactive"
+    },
+    "resourceForm": {
+      "updateFailed": "فشل التحديث",
+      "createFailed": "فشل الإنشاء",
+      "updating": "Updating",
+      "creating": "Creating",
+      "update": "تحديث",
+      "create": "إنشاء",
+      "updated": "تم التحديث",
+      "created": "تم الإنشاء"
+    }
+  }
+}

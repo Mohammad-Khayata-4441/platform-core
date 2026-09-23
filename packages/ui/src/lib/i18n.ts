@@ -1,8 +1,12 @@
 /**
- * P2 i18n shim. `@core/i18n` (next-intl) lands in P3; until then these return
- * humanized English labels derived from the message key so the UI is readable.
+ * Real translations via next-intl. Components call `useTranslations(namespace)`;
+ * the app provides `NextIntlClientProvider` (see `apps/dashboard`). When no
+ * provider is present (e.g. isolated component tests), `fallbackTranslator`
+ * returns humanized English derived from the key.
  */
-export function useTranslations(_namespace?: string) {
+export { useTranslations, useLocale } from 'next-intl';
+
+export function fallbackTranslator(_namespace?: string) {
   return (key: string, _values?: Record<string, unknown>): string => {
     const last = key.split('.').pop() ?? key;
     return last
@@ -10,8 +14,4 @@ export function useTranslations(_namespace?: string) {
       .replace(/[_-]+/g, ' ')
       .replace(/^./, (c) => c.toUpperCase());
   };
-}
-
-export function useLocale(): string {
-  return 'en';
 }
