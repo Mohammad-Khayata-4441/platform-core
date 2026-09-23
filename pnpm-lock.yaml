@@ -408,6 +408,25 @@ importers:
 
   packages/scaffold: {}
 
+  packages/shared:
+    dependencies:
+      react:
+        specifier: ^19.0.0
+        version: 19.3.0
+    devDependencies:
+      '@core/typescript-config':
+        specifier: workspace:*
+        version: link:../typescript-config
+      '@types/node':
+        specifier: ^22.0.0
+        version: 22.20.4
+      typescript:
+        specifier: 5.9.2
+        version: 5.9.2
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.4)(jsdom@25.0.1)(lightningcss@1.32.0)(terser@5.51.2)
+
   packages/typescript-config: {}
 
   packages/ui:
