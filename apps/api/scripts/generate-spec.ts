@@ -1,30 +1,27 @@
 /**
- * CI / manual equivalent of the watch-mode generation in main.ts.
- * Bootstraps NestJS without starting the HTTP server.
+ * CI / manual equivalent of the watch-mode spec generation in main.ts.
+ * Bootstraps NestJS without starting the HTTP server, then writes
+ * `apps/api/openapi.yaml`. The TypeScript types are generated separately by
+ * `@core/codegen` (TS 6 toolchain).
  *
- * Must run against the Nest-compiled output (`dist/`) so the `@nestjs/swagger`
- * decorator plugin is applied identically to watch mode.
+ * Run via `tsx scripts/generate-spec.ts` after the API has been built.
  */
 process.env.GENERATE_SPEC = 'true';
 
 import { NestFactory } from '@nestjs/core';
+import type { AppModule as AppModuleType } from '../src/app.module.js';
+import type * as ContractGen from '../src/contracts/contract-generation.js';
 
-/* eslint-disable @typescript-eslint/no-var-requires */
-const { AppModule } = require('../dist/src/app.module');
-const { buildContractDocument, writeContractArtifacts } = require('../dist/src/contracts/contract-generation');
-/* eslint-enable @typescript-eslint/no-var-requires */
+const appModulePath = '../dist/src/app.module.js';
+const contractPath = '../dist/src/contracts/contract-generation.js';
 
-async function run() {
-  const app = await NestFactory.create(AppModule, { logger: false });
+const { AppModule } = (await import(appModulePath)) as { AppModule: typeof AppModuleType };
+const { buildContractDocument, writeContractSpec } = (await import(contractPath)) as typeof ContractGen;
 
-  const document = buildContractDocument(app);
-  await app.close();
+const app = await NestFactory.create(AppModule, { logger: false });
 
-  writeContractArtifacts(document);
-  console.log('Contract artifacts written (openapi.yaml + api-contracts types)');
-}
+const document = buildContractDocument(app);
+await app.close();
 
-run().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+writeContractSpec(document);
+console.log('openapi.yaml written');

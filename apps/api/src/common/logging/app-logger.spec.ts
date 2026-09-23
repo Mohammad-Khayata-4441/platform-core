@@ -1,8 +1,8 @@
-import { AppLogger } from './app-logger';
-import { RequestContext } from '../request-context/request-context';
+import { AppLogger } from './app-logger.js';
+import { RequestContext } from '../request-context/request-context.js';
 
 function captureStdout(fn: () => void): Array<Record<string, unknown>> {
-    const write = jest.spyOn(process.stdout, 'write').mockImplementation(() => true);
+    const write = vi.spyOn(process.stdout, 'write').mockImplementation(() => true);
     try {
         fn();
         return write.mock.calls.map((call) => JSON.parse(String(call[0])) as Record<string, unknown>);

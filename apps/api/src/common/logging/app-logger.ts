@@ -1,5 +1,5 @@
 import { ConsoleLogger, type LogLevel } from '@nestjs/common';
-import { RequestContext } from '../request-context/request-context';
+import { RequestContext } from '../request-context/request-context.js';
 
 /**
  * Phase 7.3.1 — Nest's built-in JSON logger plus the request correlation id,

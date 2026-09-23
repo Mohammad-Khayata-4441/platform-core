@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto';
 import type { NextFunction, Request, Response } from 'express';
-import { CORRELATION_ID } from '../constants/headers';
-import { RequestContext } from './request-context';
+import { CORRELATION_ID } from '../constants/headers.js';
+import { RequestContext } from './request-context.js';
 
 /** Accept caller-supplied ids only if they are short and header-safe. */
 const SAFE_ID = /^[A-Za-z0-9._-]{1,128}$/;

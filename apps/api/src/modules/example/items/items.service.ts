@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { CrudService } from '@core/backend-core';
-import { ItemsRepository, type ItemEntity } from './items.repository';
-import { ItemsPresenter } from './items.presenter';
-import type { CreateItemDto, ItemResponseDto, UpdateItemDto } from './dto/items.dto';
+import { ItemsRepository, type ItemEntity } from './items.repository.js';
+import { ItemsPresenter } from './items.presenter.js';
+import type { CreateItemDto, ItemResponseDto, UpdateItemDto } from './dto/items.dto.js';
 
 @Injectable()
 export class ItemsService extends CrudService<

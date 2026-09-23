@@ -120,9 +120,7 @@ export interface components {
              *       "en": "Item"
              *     }
              */
-            name: {
-                [key: string]: string;
-            };
+            name: Record<string, never>;
             /** @example SKU-1 */
             sku: string;
             /** @example 10 */
@@ -170,9 +168,7 @@ export interface components {
              *       "en": "Item"
              *     }
              */
-            name: {
-                [key: string]: string;
-            };
+            name: Record<string, never>;
             /** @example SKU-1 */
             sku: string;
             /** @example 10 */
@@ -190,9 +186,7 @@ export interface components {
              *       "en": "Item"
              *     }
              */
-            name?: {
-                [key: string]: string;
-            };
+            name?: Record<string, never>;
             /** @example SKU-1 */
             sku?: string;
             /** @example 20 */
@@ -232,9 +226,7 @@ export interface components {
              *       "en": "Item"
              *     }
              */
-            name?: {
-                [key: string]: string;
-            };
+            name?: Record<string, never>;
             /** @example SKU-1 */
             sku?: string;
             /** @example 20 */
