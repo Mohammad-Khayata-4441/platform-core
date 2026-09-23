@@ -1,5 +1,5 @@
-import { RequestContext } from './request-context';
-import { correlationIdMiddleware } from './correlation-id.middleware';
+import { RequestContext } from './request-context.js';
+import { correlationIdMiddleware } from './correlation-id.middleware.js';
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 
@@ -50,8 +50,8 @@ describe('RequestContext', () => {
 
 describe('correlationIdMiddleware', () => {
     function invoke(incoming: string | undefined) {
-        const res = { setHeader: jest.fn() };
-        const req = { header: jest.fn().mockReturnValue(incoming), ip: '10.0.0.1' };
+        const res = { setHeader: vi.fn() };
+        const req = { header: vi.fn().mockReturnValue(incoming), ip: '10.0.0.1' };
         let seen: ReturnType<typeof RequestContext.get>;
         correlationIdMiddleware(req as never, res as never, () => {
             seen = RequestContext.get();

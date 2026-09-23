@@ -1,18 +1,17 @@
 {
-  "name": "@core/scaffold",
+  "name": "@core/codegen",
   "version": "0.0.0",
   "private": true,
   "type": "module",
-  "bin": {
-    "create-core-app": "./bin/create-core-app.mjs"
-  },
   "scripts": {
+    "generate:types": "node scripts/generate-types.mjs",
     "build": "echo skip",
     "lint": "echo skip",
     "check-types": "echo skip",
     "test": "echo skip"
   },
-  "engines": {
-    "node": ">=20"
+  "devDependencies": {
+    "openapi-typescript": "^7.10.1",
+    "typescript": "^6.0.0"
   }
 }

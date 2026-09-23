@@ -1,7 +1,7 @@
 import { Controller } from '@nestjs/common';
 import { createCrudController } from '@core/backend-core';
-import { ItemsService } from './items.service';
-import { CreateItemDto, ItemResponseDto, UpdateItemDto } from './dto/items.dto';
+import { ItemsService } from './items.service.js';
+import { CreateItemDto, ItemResponseDto, UpdateItemDto } from './dto/items.dto.js';
 
 const CrudBase = createCrudController<ItemResponseDto, CreateItemDto, UpdateItemDto>({
   responseDto: ItemResponseDto,

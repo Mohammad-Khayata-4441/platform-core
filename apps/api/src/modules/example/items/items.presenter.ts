@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { CrudPresenter } from '@core/backend-core';
-import type { ItemResponseDto } from './dto/items.dto';
-import type { ItemEntity } from './items.repository';
+import type { ItemResponseDto } from './dto/items.dto.js';
+import type { ItemEntity } from './items.repository.js';
 
 @Injectable()
 export class ItemsPresenter extends CrudPresenter<ItemEntity, ItemResponseDto> {

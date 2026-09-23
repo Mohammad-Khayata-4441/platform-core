@@ -115,10 +115,12 @@ pnpm --filter @core/db-prisma db:migrate:dev
 
 ## Tech Stack
 
-- **Runtime**: Node ≥ 20, TypeScript 5.9
+- **Runtime**: Node ≥ 22.12, TypeScript 7 (native `tsc`); TypeScript 6 is isolated to the `@core/codegen` tool
 - **Package manager**: pnpm 10
-- **Framework**: NestJS 11, Next.js 15.5, React 19
-- **ORM**: Prisma 6.7 with `@prisma/adapter-pg`
+- **Framework**: NestJS 12 (ESM; `apps/api` is `"type": "module"`), Next.js 16 (Turbopack), React 19.3
+- **ORM**: Prisma 7.10 with `@prisma/adapter-pg`
 - **Typing**: OpenAPI → `openapi-typescript` → `openapi-fetch`
 - **State**: TanStack Query v5, react-hook-form, nuqs
 - **Validation**: class-validator (API DTOs), Joi (env)
+- **Tests**: Vitest 5 (`apps/api` and packages)
+- **Lint**: oxlint (TypeScript 7 has no stable compiler API for typescript-eslint until 7.1)

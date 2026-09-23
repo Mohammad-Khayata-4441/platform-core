@@ -3,11 +3,11 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiExceptionFilter, validationExceptionFactory } from '@core/backend-core';
 import { PrismaModule } from '@core/db-prisma/nest';
-import { HealthController } from './health/health.controller';
-import { ItemsModule } from './modules/example/items/items.module';
-import { demoUserMiddleware } from './common/middleware/demo-user.middleware';
-import configuration from './config/configuration';
-import { envValidationSchema } from './config/envValidator';
+import { HealthController } from './health/health.controller.js';
+import { ItemsModule } from './modules/example/items/items.module.js';
+import { demoUserMiddleware } from './common/middleware/demo-user.middleware.js';
+import configuration from './config/configuration.js';
+import { envValidationSchema } from './config/envValidator.js';
 
 @Module({
   imports: [

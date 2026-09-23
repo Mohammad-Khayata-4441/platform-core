@@ -3,11 +3,11 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import * as cookieParser from 'cookie-parser';
-import { AppModule } from './app.module';
-import { correlationIdMiddleware } from './common/request-context/correlation-id.middleware';
-import { AppLogger } from './common/logging/app-logger';
-import { buildContractDocument, writeContractArtifacts } from './contracts/contract-generation';
+import cookieParser from 'cookie-parser';
+import { AppModule } from './app.module.js';
+import { correlationIdMiddleware } from './common/request-context/correlation-id.middleware.js';
+import { AppLogger } from './common/logging/app-logger.js';
+import { buildContractDocument, writeContractSpec } from './contracts/contract-generation.js';
 
 const logger = new Logger('Bootstrap');
 
@@ -35,15 +35,15 @@ async function bootstrap() {
     },
   });
 
-  // In development: keep the committed contract live on every restart.
+  // In development: keep the committed spec live on every restart.
   if (process.env.NODE_ENV !== 'production') {
     logger.log('Generating OpenAPI spec...');
-    writeContractArtifacts(document);
-    logger.log('OpenAPI spec and api-contracts types regenerated');
+    writeContractSpec(document);
+    logger.log('openapi.yaml regenerated');
   }
 
   app.use(correlationIdMiddleware);
-  app.use(cookieParser.default());
+  app.use(cookieParser());
   const corsOrigins = process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean);
   app.enableCors({ origin: corsOrigins?.length ? corsOrigins : true, credentials: true });
   app.set('query parser', 'extended');

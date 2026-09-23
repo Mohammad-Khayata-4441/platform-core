@@ -788,8 +788,6 @@ components:
           type: string
         name:
           type: object
-          additionalProperties:
-            type: string
           example:
             ar: منتج
             en: Item
@@ -876,8 +874,6 @@ components:
       properties:
         name:
           type: object
-          additionalProperties:
-            type: string
           example:
             ar: منتج
             en: Item
@@ -889,11 +885,11 @@ components:
           example: 10
         status:
           type: string
+          example: DRAFT
           enum:
             - DRAFT
             - ACTIVE
             - ARCHIVED
-          example: DRAFT
       required:
         - name
         - sku
@@ -903,8 +899,6 @@ components:
       properties:
         name:
           type: object
-          additionalProperties:
-            type: string
           example:
             ar: منتج
             en: Item
@@ -916,11 +910,11 @@ components:
           example: 20
         status:
           type: string
+          example: ACTIVE
           enum:
             - DRAFT
             - ACTIVE
             - ARCHIVED
-          example: ACTIVE
     BulkDeleteBodyDto:
       type: object
       properties:
@@ -968,8 +962,6 @@ components:
       properties:
         name:
           type: object
-          additionalProperties:
-            type: string
           example:
             ar: منتج
             en: Item
@@ -981,11 +973,11 @@ components:
           example: 20
         status:
           type: string
+          example: ACTIVE
           enum:
             - DRAFT
             - ACTIVE
             - ARCHIVED
-          example: ACTIVE
         id:
           type: string
           example: 018e1234-abcd-7000-a001-000000000001

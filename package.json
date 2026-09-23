@@ -4,21 +4,31 @@
   "scripts": {
     "build": "turbo run build",
     "dev": "turbo run dev",
-    "lint": "turbo run lint",
+    "lint": "oxlint",
     "check-types": "turbo run check-types",
     "test": "turbo run test",
     "format": "prettier --write \"**/*.{ts,tsx,md,json}\"",
     "setup": "node scripts/setup.mjs",
-    "generate": "pnpm --filter @core/api generate:spec && pnpm --filter @core/api-contracts build"
+    "generate": "pnpm --filter @core/api generate:spec && pnpm --filter @core/codegen generate:types && pnpm --filter @core/api-contracts build"
   },
   "devDependencies": {
     "prettier": "^3.6.2",
     "turbo": "^2.7.3",
-    "typescript": "5.9.2"
+    "typescript": "^7.0.0",
+    "oxlint": "^1.85.0"
   },
   "packageManager": "pnpm@10.30.1",
   "pnpm": {
-    "onlyBuiltDependencies": ["@prisma/engines", "prisma", "esbuild"]
+    "onlyBuiltDependencies": [
+      "@prisma/engines",
+      "prisma",
+      "esbuild"
+    ],
+    "overrides": {
+      "vite": "^8.3.0"
+    }
   },
-  "engines": { "node": ">=20" }
+  "engines": {
+    "node": ">=22.12"
+  }
 }

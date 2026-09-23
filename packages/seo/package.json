@@ -1,32 +1,35 @@
 {
-  "name": "@core/seo",
-  "version": "0.0.0",
-  "private": true,
-  "exports": {
-    ".": "./src/index.ts",
-    "./sitemap": "./src/sitemap/factory.ts",
-    "./robots": "./src/robots/factory.ts"
-  },
-  "scripts": {
-    "build": "tsc --noEmit",
-    "lint": "echo skip",
-    "check-types": "tsc --noEmit",
-    "test": "vitest run"
-  },
-  "peerDependencies": {
-    "next": ">=15",
-    "react": "^19.0.0"
-  },
-  "peerDependenciesMeta": {
-    "react": { "optional": true }
-  },
-  "devDependencies": {
-    "@core/typescript-config": "workspace:*",
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.2.2",
-    "next": "15.5.4",
-    "react": "^19.2.0",
-    "typescript": "5.9.2",
-    "vitest": "^2.1.8"
-  }
+    "name":  "@core/seo",
+    "version":  "0.0.0",
+    "private":  true,
+    "exports":  {
+                    ".":  "./src/index.ts",
+                    "./sitemap":  "./src/sitemap/factory.ts",
+                    "./robots":  "./src/robots/factory.ts"
+                },
+    "scripts":  {
+                    "build":  "tsc --noEmit",
+                    "lint":  "echo skip",
+                    "check-types":  "tsc --noEmit",
+                    "test":  "vitest run"
+                },
+    "peerDependencies":  {
+                             "next":  "\u003e=15",
+                             "react":  "^19.0.0"
+                         },
+    "peerDependenciesMeta":  {
+                                 "react":  {
+                                               "optional":  true
+                                           }
+                             },
+    "devDependencies":  {
+                            "@core/typescript-config":  "workspace:*",
+                            "@types/node":  "^22.0.0",
+                            "@types/react":  "^19.2.2",
+                            "next":  "15.5.4",
+                            "react":  "^19.2.0",
+                            "typescript":  "^7.0.0",
+                            "vitest":  "^5.0.1",
+                            "vite":  "^8.3.0"
+                        }
 }
