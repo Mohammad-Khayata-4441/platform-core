@@ -30,6 +30,7 @@ model User {
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
+  userRoles     UserRole[]
 }
 
 /// Hashed refresh session. The cookie holds the raw token; this row stores only the hash.
@@ -43,4 +44,45 @@ model RefreshToken {
   createdAt DateTime  @default(now())
 
   @@index([userId])
+}
+
+/// Allow-or-deny action. The key comes from the code catalog, not from an operator.
+model Permission {
+  id        String           @id @default(cuid())
+  key       String           @unique
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  grants    RolePermission[]
+}
+
+/// Named bundle of permissions. The system role is found by slug `owner`.
+model Role {
+  id        String           @id @default(cuid())
+  slug      String           @unique
+  label     Json
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+  grants    RolePermission[]
+  holders   UserRole[]
+}
+
+/// Grant of one permission to one role. Boot rewrites the owner role's rows.
+model RolePermission {
+  roleId       String
+  permissionId String
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+}
+
+/// Assignment of one role to one user. The first registered user receives owner.
+model UserRole {
+  userId String
+  roleId String
+  user   User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role   Role @relation(fields: [roleId], references: [id], onDelete: Cascade)
+
+  @@id([userId, roleId])
+  @@index([roleId])
 }

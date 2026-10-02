@@ -32,6 +32,21 @@ function jwtSecret(value: string | undefined, fallback: string): string {
       useFactory: (prisma: PrismaService, config: ConfigService) => ({
         users: prisma.user,
         refreshTokens: prisma.refreshToken,
+        permissions: prisma.permission,
+        roles: prisma.role,
+        rolePermissions: prisma.rolePermission,
+        userRoles: prisma.userRole,
+        transaction: (run) =>
+          prisma.$transaction((tx) =>
+            run({
+              users: tx.user,
+              refreshTokens: tx.refreshToken,
+              permissions: tx.permission,
+              roles: tx.role,
+              rolePermissions: tx.rolePermission,
+              userRoles: tx.userRole,
+            }),
+          ),
         accessSecret: jwtSecret(config.get<string>('jwt.accessSecret'), 'dev-access-secret'),
         refreshSecret: jwtSecret(config.get<string>('jwt.refreshSecret'), 'dev-refresh-secret'),
         accessTtl: config.get<string>('jwt.accessExpiresIn') ?? '24h',
@@ -54,7 +69,7 @@ function jwtSecret(value: string | undefined, fallback: string): string {
     },
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
     // JwtAuthGuard stays on /auth/me. Do not register it globally: items must work without a session.
-    // PERMISSION_CATALOG is unset until roles are synced from the catalog.
+    // PERMISSION_CATALOG stays unset. Route checks are a later ticket. Boot still stores owner grants.
     // Messaging is opt-in. Add @core/messaging and import MessagingModule
     // from @core/messaging/nest when this API should send OTP, email, MsgPlus, or Twilio.
   ],

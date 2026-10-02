@@ -55,7 +55,11 @@ export class AuthModule {
         ...(optionProviders ?? []),
         {
           provide: SessionService,
-          useFactory: (options: AuthModuleOptions) => new SessionService(options),
+          useFactory: async (options: AuthModuleOptions) => {
+            const sessions = new SessionService(options);
+            await sessions.syncCatalog();
+            return sessions;
+          },
           inject: [AUTH_OPTIONS],
         },
         {

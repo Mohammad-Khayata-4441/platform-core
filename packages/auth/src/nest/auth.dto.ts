@@ -20,6 +20,18 @@ export class PasswordCredentialsDto {
   password!: string;
 }
 
+export class SessionRoleDto {
+  @ApiProperty({ type: 'string', example: 'owner' })
+  slug!: string;
+
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'string' },
+    example: { en: 'Owner' },
+  })
+  label!: Record<string, string>;
+}
+
 export class SessionUserDto {
   @ApiProperty({ type: 'string' })
   id!: string;
@@ -29,6 +41,9 @@ export class SessionUserDto {
 
   @ApiProperty({ type: 'string', nullable: true, example: '+15551212000' })
   phone!: string | null;
+
+  @ApiProperty({ type: () => SessionRoleDto, isArray: true })
+  roles!: SessionRoleDto[];
 }
 
 /** Success envelope for auth routes. `data` is null after logout. */

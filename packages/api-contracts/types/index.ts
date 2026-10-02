@@ -151,12 +151,25 @@ export interface components {
             /** @example correct horse */
             password: string;
         };
+        SessionRoleDto: {
+            /** @example owner */
+            slug: string;
+            /**
+             * @example {
+             *       "en": "Owner"
+             *     }
+             */
+            label: {
+                [key: string]: string;
+            };
+        };
         SessionUserDto: {
             id: string;
             /** @example ada@example.com */
             email: string | null;
             /** @example +15551212000 */
             phone: string | null;
+            roles: components["schemas"]["SessionRoleDto"][];
         };
         SessionResponseDto: {
             /** @example success */

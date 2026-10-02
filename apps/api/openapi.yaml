@@ -783,6 +783,21 @@ components:
           example: correct horse
       required:
         - password
+    SessionRoleDto:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: owner
+        label:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            en: Owner
+      required:
+        - slug
+        - label
     SessionUserDto:
       type: object
       properties:
@@ -796,10 +811,15 @@ components:
           type: string
           nullable: true
           example: '+15551212000'
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/SessionRoleDto'
       required:
         - id
         - email
         - phone
+        - roles
     SessionResponseDto:
       type: object
       properties:

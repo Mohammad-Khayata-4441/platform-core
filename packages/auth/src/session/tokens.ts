@@ -31,20 +31,21 @@ function sign(payload: AuthClaims, secret: string): string {
   return `${data}.${signature}`;
 }
 
-/** HMAC access token. Roles and permissions stay empty until a later ticket fills them. */
+/** HMAC access token. `roles` and `permissions` are the caller's current grants. */
 export function signAccessToken(
   userId: string,
   secret: string,
   ttlMs: number,
   audience: AuthAudience = 'public',
+  claims: { roles: readonly string[]; permissions: readonly string[] } = { roles: [], permissions: [] },
 ): string {
   const issuedAt = Math.floor(Date.now() / 1000);
   return sign(
     {
       sub: userId,
       audience,
-      roles: [],
-      permissions: [],
+      roles: [...claims.roles],
+      permissions: [...claims.permissions],
       iat: issuedAt,
       exp: issuedAt + Math.floor(ttlMs / 1000),
     },

@@ -15,4 +15,14 @@ export { AuthModule } from './auth.module.js';
 export type { AuthModuleAsyncOptions, AuthModuleOptions } from './auth.module.js';
 export { AUTH_OPTIONS } from './auth.tokens.js';
 export { SessionError, SessionService } from '../session/session.js';
-export type { PublicUser, SessionDelegate, SessionRefreshRecord, SessionUserRecord } from '../session/types.js';
+export type {
+  PermissionRecord,
+  PublicRole,
+  PublicUser,
+  RolePermissionRecord,
+  RoleRecord,
+  SessionDelegate,
+  SessionRefreshRecord,
+  SessionUserRecord,
+  UserRoleRecord,
+} from '../session/types.js';
