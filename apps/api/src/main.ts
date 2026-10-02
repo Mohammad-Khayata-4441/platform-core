@@ -3,8 +3,8 @@ import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import cookieParser from 'cookie-parser';
 import { AppModule } from './app.module.js';
+import { configureHttp } from './bootstrap/configure-http.js';
 import { correlationIdMiddleware } from './common/request-context/correlation-id.middleware.js';
 import { AppLogger } from './common/logging/app-logger.js';
 import { buildContractDocument, writeContractSpec } from './contracts/contract-generation.js';
@@ -43,7 +43,7 @@ async function bootstrap() {
   }
 
   app.use(correlationIdMiddleware);
-  app.use(cookieParser());
+  configureHttp(app);
   const corsOrigins = process.env.CORS_ORIGINS?.split(',').map((o) => o.trim()).filter(Boolean);
   app.enableCors({ origin: corsOrigins?.length ? corsOrigins : true, credentials: true });
   app.set('query parser', 'extended');

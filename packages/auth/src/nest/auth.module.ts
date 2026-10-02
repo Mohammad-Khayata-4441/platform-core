@@ -1,0 +1,74 @@
+import {
+  type DynamicModule,
+  type InjectionToken,
+  Module,
+  type ModuleMetadata,
+} from '@nestjs/common';
+import { SessionService, type SessionServiceOptions } from '../session/session.js';
+import type { SessionDelegate } from '../session/types.js';
+import { AuthController } from './auth.controller.js';
+import { AUTH_OPTIONS } from './auth.tokens.js';
+import { ACCESS_TOKEN_VERIFIER } from './guards.js';
+
+export { AUTH_OPTIONS };
+
+export interface AuthModuleOptions extends SessionServiceOptions {
+  /** When omitted, cookies are `Secure` only in production. */
+  cookieSecure?: boolean;
+}
+
+export interface AuthModuleAsyncOptions<T extends unknown[] = unknown[]> {
+  imports?: ModuleMetadata['imports'];
+  inject?: InjectionToken[];
+  useFactory: (...args: T) => AuthModuleOptions | Promise<AuthModuleOptions>;
+}
+
+@Module({})
+export class AuthModule {
+  /** Password sessions. The app passes Prisma accessors; this package does not import the database. */
+  static forRoot(options: AuthModuleOptions): DynamicModule {
+    return this.build([{ provide: AUTH_OPTIONS, useValue: options }]);
+  }
+
+  static forRootAsync<T extends unknown[]>(options: AuthModuleAsyncOptions<T>): DynamicModule {
+    return this.build(
+      [
+        {
+          provide: AUTH_OPTIONS,
+          useFactory: options.useFactory,
+          inject: options.inject ?? [],
+        },
+      ],
+      options.imports,
+    );
+  }
+
+  private static build(
+    optionProviders: DynamicModule['providers'],
+    imports?: ModuleMetadata['imports'],
+  ): DynamicModule {
+    return {
+      module: AuthModule,
+      imports: imports ?? [],
+      controllers: [AuthController],
+      providers: [
+        ...(optionProviders ?? []),
+        {
+          provide: SessionService,
+          useFactory: (options: AuthModuleOptions) => new SessionService(options),
+          inject: [AUTH_OPTIONS],
+        },
+        {
+          provide: ACCESS_TOKEN_VERIFIER,
+          useFactory: (sessions: SessionService) => ({
+            verify: (token: string) => sessions.verifyAccess(token),
+          }),
+          inject: [SessionService],
+        },
+      ],
+      exports: [SessionService, ACCESS_TOKEN_VERIFIER],
+    };
+  }
+}
+
+export type { SessionDelegate };

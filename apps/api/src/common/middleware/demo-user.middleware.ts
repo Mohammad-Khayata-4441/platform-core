@@ -2,8 +2,8 @@ import type { NextFunction, Request, Response } from 'express';
 import type { RequestUser } from '@core/backend-core';
 
 /**
- * EXAMPLE-ONLY: attaches a demo user so the items slice works before auth is
- * wired. Replace with real authentication (see @core/auth) when you add it.
+ * EXAMPLE-ONLY: attaches a demo user so the items slice has a tenant id.
+ * Auth routes do not trust this. They use JwtAuthGuard and ignore it.
  */
 export function demoUserMiddleware(req: Request, _res: Response, next: NextFunction): void {
   const request = req as Request & { user?: RequestUser };

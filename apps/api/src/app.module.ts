@@ -1,13 +1,22 @@
 import { MiddlewareConsumer, Module, NestModule, ValidationPipe } from '@nestjs/common';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiExceptionFilter, validationExceptionFactory } from '@core/backend-core';
-import { PrismaModule } from '@core/db-prisma/nest';
+import { AuthModule } from '@core/auth/nest';
+import { PrismaModule, PrismaService } from '@core/db-prisma/nest';
 import { HealthController } from './health/health.controller.js';
 import { ItemsModule } from './modules/example/items/items.module.js';
 import { demoUserMiddleware } from './common/middleware/demo-user.middleware.js';
 import configuration from './config/configuration.js';
 import { envValidationSchema } from './config/envValidator.js';
+
+function jwtSecret(value: string | undefined, fallback: string): string {
+  if (value) return value;
+  if (process.env.NODE_ENV === 'production' && !process.env.GENERATE_SPEC) {
+    throw new Error('JWT_ACCESS_SECRET and JWT_REFRESH_SECRET are required in production');
+  }
+  return fallback;
+}
 
 @Module({
   imports: [
@@ -18,6 +27,17 @@ import { envValidationSchema } from './config/envValidator.js';
       load: [configuration],
     }),
     PrismaModule,
+    AuthModule.forRootAsync({
+      inject: [PrismaService, ConfigService],
+      useFactory: (prisma: PrismaService, config: ConfigService) => ({
+        users: prisma.user,
+        refreshTokens: prisma.refreshToken,
+        accessSecret: jwtSecret(config.get<string>('jwt.accessSecret'), 'dev-access-secret'),
+        refreshSecret: jwtSecret(config.get<string>('jwt.refreshSecret'), 'dev-refresh-secret'),
+        accessTtl: config.get<string>('jwt.accessExpiresIn') ?? '24h',
+        refreshTtl: config.get<string>('jwt.refreshExpiresIn') ?? '7d',
+      }),
+    }),
     ItemsModule,
   ],
   controllers: [HealthController],
@@ -33,16 +53,15 @@ import { envValidationSchema } from './config/envValidator.js';
       }),
     },
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
-    // RBAC: when you enable @core/auth's JwtAuthGuard, provide the tokens below.
-    //   { provide: PERMISSION_CATALOG, useValue: myRolePermissionMap }
-    //   { provide: ACCESS_TOKEN_VERIFIER, useValue: myVerifier }
+    // JwtAuthGuard stays on /auth/me. Do not register it globally: items must work without a session.
+    // PERMISSION_CATALOG is unset until roles are synced from the catalog.
     // Messaging is opt-in. Add @core/messaging and import MessagingModule
     // from @core/messaging/nest when this API should send OTP, email, MsgPlus, or Twilio.
   ],
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    // EXAMPLE-ONLY: replace with real auth. See @core/auth.
+    // Items still read this example user. Auth routes ignore it and require a real session.
     consumer.apply(demoUserMiddleware).forRoutes('*');
   }
 }

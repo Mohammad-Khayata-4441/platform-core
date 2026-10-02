@@ -9,6 +9,83 @@ paths:
           description: ''
       tags:
         - Health
+  /auth/register:
+    post:
+      operationId: Auth.register
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordCredentialsDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
+  /auth/login:
+    post:
+      operationId: Auth.login
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PasswordCredentialsDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
+  /auth/refresh:
+    post:
+      operationId: Auth.refresh
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
+  /auth/logout:
+    post:
+      operationId: Auth.logout
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
+  /auth/me:
+    get:
+      operationId: Auth.me
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
   /example/items:
     get:
       operationId: Items.list
@@ -692,6 +769,55 @@ components:
       name: JWT
       in: header
   schemas:
+    PasswordCredentialsDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: ada@example.com
+        phone:
+          type: string
+          example: '+15551212000'
+        password:
+          type: string
+          example: correct horse
+      required:
+        - password
+    SessionUserDto:
+      type: object
+      properties:
+        id:
+          type: string
+        email:
+          type: string
+          nullable: true
+          example: ada@example.com
+        phone:
+          type: string
+          nullable: true
+          example: '+15551212000'
+      required:
+        - id
+        - email
+        - phone
+    SessionResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Registered
+        data:
+          nullable: true
+          type: object
+          allOf:
+            - $ref: '#/components/schemas/SessionUserDto'
+      required:
+        - status
+        - message
+        - data
     PaginationMetaDto:
       type: object
       properties:

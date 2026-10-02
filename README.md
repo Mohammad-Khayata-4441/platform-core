@@ -51,7 +51,7 @@ Non-interactive (CI): set `SCAFFOLD_NAME`, `SCAFFOLD_SCOPE`, `SCAFFOLD_KEEP_UI`,
 | `@core/api-contracts` | Response envelope, resource primitives, filter DSL, generated OpenAPI types |
 | `@core/backend-core` | NestJS CRUD kernel (repository/service/controller/presenter), RBAC, import/export |
 | `@core/api-client` | `openapi-fetch` client, `CrudClient`, React Query hooks |
-| `@core/auth` | Cookie-JWT toolkit (`./next`, `./nest`, `./react`, `./middleware`) |
+| `@core/auth` | Password sessions and cookie JWT (`./next`, `./nest`, `./react`, `./middleware`). The app passes Prisma accessors in. |
 | `@core/messaging` | Opt-in OTP, email, MsgPlus SMS, and Twilio WhatsApp (`./nest`) |
 | `@core/i18n` | Locales (ar/en + RTL), next-intl factories, Nest adapter |
 | `@core/shared` | Formatters, subdomain, print/download helpers |
