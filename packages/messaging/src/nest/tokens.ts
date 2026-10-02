@@ -1,0 +1,1 @@
+export const MESSAGING_OPTIONS = Symbol('CORE_MESSAGING_OPTIONS');

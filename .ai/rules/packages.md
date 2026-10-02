@@ -27,6 +27,7 @@ Both `api` and `dashboard` depend on `api-contracts`.
 | `@core/api-client` | Typed HTTP clients (`CrudClient`) |
 | `@core/backend-core` | CRUD bases, API response builder, query utils |
 | `@core/ui` | Shared UI components |
+| `@core/messaging` | Opt-in OTP, email, MsgPlus, and Twilio. No `db-prisma` dependency. Apps import `@core/messaging/nest` only when they send codes. |
 | `@core/eslint-config`, `@core/typescript-config` | Tooling |
 
 ## OpenAPI type generation

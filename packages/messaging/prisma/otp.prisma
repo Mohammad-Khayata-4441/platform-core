@@ -1,0 +1,16 @@
+// Copy into the app schema when OTP codes should survive a process restart.
+// e-dukan named the expiry column `expriesAt`. This package uses `expiresAt`.
+// The store does not import Prisma. Pass `prisma.otpCode` to `createPrismaOtpStore`.
+
+model OtpCode {
+  id        String   @id @default(uuid())
+  email     String?
+  phone     String?
+  code      String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([email])
+  @@index([phone])
+}

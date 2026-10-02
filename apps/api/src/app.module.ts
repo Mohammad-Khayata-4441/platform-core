@@ -36,6 +36,8 @@ import { envValidationSchema } from './config/envValidator.js';
     // RBAC: when you enable @core/auth's JwtAuthGuard, provide the tokens below.
     //   { provide: PERMISSION_CATALOG, useValue: myRolePermissionMap }
     //   { provide: ACCESS_TOKEN_VERIFIER, useValue: myVerifier }
+    // Messaging is opt-in. Add @core/messaging and import MessagingModule
+    // from @core/messaging/nest when this API should send OTP, email, MsgPlus, or Twilio.
   ],
 })
 export class AppModule implements NestModule {
