@@ -164,6 +164,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/users": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Users.list"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/users/{userId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["Users.update"];
+        trace?: never;
+    };
+    "/auth/users/{userId}/deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Users.deactivate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/users/{userId}/restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Users.restore"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/example/items": {
         parameters: {
             query?: never;
@@ -316,6 +380,42 @@ export interface components {
             /** @example Role assigned */
             message: string;
             data: components["schemas"]["RoleAssignmentDto"];
+        };
+        UpdateUserDto: {
+            /** @example Ada Lovelace */
+            name: string;
+            /** @example ada@example.com */
+            email?: string;
+            /** @example +15551212000 */
+            phone?: string;
+        };
+        UserViewDto: {
+            id: string;
+            /** @example Ada Lovelace */
+            name: string | null;
+            /** @example ada@example.com */
+            email: string | null;
+            /** @example +15551212000 */
+            phone: string | null;
+            /**
+             * Format: date-time
+             * @example null
+             */
+            deactivatedAt: string | null;
+        };
+        UserResponseDto: {
+            /** @example success */
+            status: string;
+            /** @example User updated */
+            message: string;
+            data: components["schemas"]["UserViewDto"];
+        };
+        UserListResponseDto: {
+            /** @example success */
+            status: string;
+            /** @example Users */
+            message: string;
+            data: components["schemas"]["UserViewDto"][];
         };
         PaginationMetaDto: {
             /** @example 50 */
@@ -736,6 +836,92 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["RoleAssignmentResponseDto"];
+                };
+            };
+        };
+    };
+    "Users.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserListResponseDto"];
+                };
+            };
+        };
+    };
+    "Users.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateUserDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+        };
+    };
+    "Users.deactivate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
+                };
+            };
+        };
+    };
+    "Users.restore": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["UserResponseDto"];
                 };
             };
         };

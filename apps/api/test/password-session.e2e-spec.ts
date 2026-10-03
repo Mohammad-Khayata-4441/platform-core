@@ -78,17 +78,32 @@ function createFakeDelegate(): SessionDelegate {
         if (registration && row) openRegistrations--;
         return row;
       },
+      async findMany() {
+        return users.map((row) => ({ ...row }));
+      },
       async create(args) {
         const now = new Date();
         const row: SessionUserRecord = {
           id: randomUUID(),
+          name: null,
           email: args.data.email,
           phone: args.data.phone,
           passwordHash: args.data.passwordHash,
+          deactivatedAt: null,
           createdAt: now,
           updatedAt: now,
         };
         users.push(row);
+        return row;
+      },
+      async update(args) {
+        const row = users.find((entry) => entry.id === args.where.id);
+        if (!row) throw new Error(`user ${args.where.id} not found`);
+        if (args.data.name !== undefined) row.name = args.data.name;
+        if (args.data.email !== undefined) row.email = args.data.email;
+        if (args.data.phone !== undefined) row.phone = args.data.phone;
+        if (args.data.deactivatedAt !== undefined) row.deactivatedAt = args.data.deactivatedAt;
+        row.updatedAt = new Date();
         return row;
       },
     },
@@ -113,6 +128,16 @@ function createFakeDelegate(): SessionDelegate {
         if (!row) throw new Error(`refresh token ${args.where.id} not found`);
         row.revokedAt = args.data.revokedAt;
         return row;
+      },
+      async updateMany(args) {
+        let count = 0;
+        for (const row of refreshTokens) {
+          if (row.userId === args.where.userId && row.revokedAt === null) {
+            row.revokedAt = args.data.revokedAt;
+            count += 1;
+          }
+        }
+        return { count };
       },
     },
     permissions: {
@@ -1152,6 +1177,608 @@ describe('roles (e2e)', () => {
     expect(roles.find((role) => role.slug === 'owner')?.permissions).toEqual(
       [...CORE_PERMISSIONS, 'billing.read'].sort(),
     );
+  });
+});
+
+describe('users (e2e)', () => {
+  let app: INestApplication;
+
+  afterEach(async () => {
+    if (app) await app.close();
+  });
+
+  it('lets a user with users.read list users and refuses a signed-in user without it', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    const noor = await request(server)
+      .post('/auth/register')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(201);
+    const noorId = noor.body.data.id;
+    if (typeof noorId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', ownerCookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.read'],
+      })
+      .expect(201);
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+
+    const list = await request(server)
+      .get('/auth/users')
+      .set('Cookie', bearer(graceSession, ACCESS_TOKEN_COOKIE))
+      .expect(200);
+    expect(list.body.status).toBe('success');
+
+    const byEmail = new Map(
+      (list.body.data as { email: string }[]).map((user) => [user.email, user]),
+    );
+    expect(byEmail.get('ada@example.com')).toEqual({
+      id: adaId,
+      name: null,
+      email: 'ada@example.com',
+      phone: null,
+      deactivatedAt: null,
+    });
+    expect(byEmail.get('grace@example.com')).toEqual({
+      id: graceId,
+      name: null,
+      email: 'grace@example.com',
+      phone: null,
+      deactivatedAt: null,
+    });
+    expect(byEmail.get('noor@example.com')).toEqual({
+      id: noorId,
+      name: null,
+      email: 'noor@example.com',
+      phone: null,
+      deactivatedAt: null,
+    });
+    expect(JSON.stringify(list.body)).not.toContain('passwordHash');
+
+    const noorSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(200);
+    const refused = await request(server)
+      .get('/auth/users')
+      .set('Cookie', bearer(noorSession, ACCESS_TOKEN_COOKIE))
+      .expect(403);
+    expect(refused.body.status).toBe('error');
+  });
+
+  it('lets a user with users.update change a name, email, and phone', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/register')
+      .send({ email: 'noor@example.com', phone: '+15551219999', password: 'correct horse' })
+      .expect(201);
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', ownerCookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.update'],
+      })
+      .expect(201);
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    const clerkCookie = bearer(graceSession, ACCESS_TOKEN_COOKIE);
+
+    const updated = await request(server)
+      .patch(`/auth/users/${adaId}`)
+      .set('Cookie', clerkCookie)
+      .send({
+        name: 'Ada Lovelace',
+        email: 'Ada.Lovelace@example.com',
+        phone: '+15551212000',
+      })
+      .expect(200);
+    expect(updated.body.data).toEqual({
+      id: adaId,
+      name: 'Ada Lovelace',
+      email: 'ada.lovelace@example.com',
+      phone: '+15551212000',
+      deactivatedAt: null,
+    });
+
+    const list = await request(server).get('/auth/users').set('Cookie', ownerCookie).expect(200);
+    const adaRow = (list.body.data as { id: string }[]).find((user) => user.id === adaId);
+    expect(adaRow).toEqual({
+      id: adaId,
+      name: 'Ada Lovelace',
+      email: 'ada.lovelace@example.com',
+      phone: '+15551212000',
+      deactivatedAt: null,
+    });
+
+    const duplicateEmail = await request(server)
+      .patch(`/auth/users/${adaId}`)
+      .set('Cookie', clerkCookie)
+      .send({ name: 'Ada Lovelace', email: 'grace@example.com', phone: '+15551212000' })
+      .expect(409);
+    expect(duplicateEmail.body.status).toBe('error');
+
+    const duplicatePhone = await request(server)
+      .patch(`/auth/users/${adaId}`)
+      .set('Cookie', clerkCookie)
+      .send({ name: 'Ada Lovelace', email: 'ada.lovelace@example.com', phone: '+15551219999' })
+      .expect(409);
+    expect(duplicatePhone.body.status).toBe('error');
+
+    const noorSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(200);
+    const refused = await request(server)
+      .patch(`/auth/users/${adaId}`)
+      .set('Cookie', bearer(noorSession, ACCESS_TOKEN_COOKIE))
+      .send({ name: 'Changed', email: 'ada.lovelace@example.com', phone: '+15551212000' })
+      .expect(403);
+    expect(refused.body.status).toBe('error');
+
+    const afterRefusal = await request(server).get('/auth/users').set('Cookie', ownerCookie).expect(200);
+    const stillAda = (afterRefusal.body.data as { id: string }[]).find((user) => user.id === adaId);
+    expect(stillAda).toEqual({
+      id: adaId,
+      name: 'Ada Lovelace',
+      email: 'ada.lovelace@example.com',
+      phone: '+15551212000',
+      deactivatedAt: null,
+    });
+  });
+
+  it('lets a user with users.deactivate deactivate and restore someone who is not the last owner', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    const noor = await request(server)
+      .post('/auth/register')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(201);
+    const noorId = noor.body.data.id;
+    if (typeof noorId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', ownerCookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.deactivate'],
+      })
+      .expect(201);
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    const clerkCookie = bearer(graceSession, ACCESS_TOKEN_COOKIE);
+
+    const noorSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(200);
+    const refused = await request(server)
+      .post(`/auth/users/${graceId}/deactivate`)
+      .set('Cookie', bearer(noorSession, ACCESS_TOKEN_COOKIE))
+      .expect(403);
+    expect(refused.body.status).toBe('error');
+
+    const deactivated = await request(server)
+      .post(`/auth/users/${noorId}/deactivate`)
+      .set('Cookie', clerkCookie)
+      .expect(200);
+    expect(deactivated.body.status).toBe('success');
+    const deactivatedAt = deactivated.body.data.deactivatedAt;
+    expect(typeof deactivatedAt).toBe('string');
+    expect(Date.parse(deactivatedAt)).not.toBeNaN();
+    expect(deactivated.body.data).toEqual({
+      id: noorId,
+      name: null,
+      email: 'noor@example.com',
+      phone: null,
+      deactivatedAt,
+    });
+    expect(JSON.stringify(deactivated.body)).not.toContain('passwordHash');
+
+    const blocked = await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(401);
+    expect(blocked.body.status).toBe('error');
+
+    const listed = await request(server).get('/auth/users').set('Cookie', ownerCookie).expect(200);
+    const noorRow = (listed.body.data as { id: string }[]).find((user) => user.id === noorId);
+    expect(noorRow).toEqual({
+      id: noorId,
+      name: null,
+      email: 'noor@example.com',
+      phone: null,
+      deactivatedAt,
+    });
+
+    const restored = await request(server)
+      .post(`/auth/users/${noorId}/restore`)
+      .set('Cookie', clerkCookie)
+      .expect(200);
+    expect(restored.body.data).toEqual({
+      id: noorId,
+      name: null,
+      email: 'noor@example.com',
+      phone: null,
+      deactivatedAt: null,
+    });
+
+    await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(200);
+
+    const afterRestore = await request(server).get('/auth/users').set('Cookie', ownerCookie).expect(200);
+    const restoredRow = (afterRestore.body.data as { id: string }[]).find((user) => user.id === noorId);
+    expect(restoredRow).toEqual({
+      id: noorId,
+      name: null,
+      email: 'noor@example.com',
+      phone: null,
+      deactivatedAt: null,
+    });
+  });
+
+  it('refuses to deactivate the last active owner, who can still sign in', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', ownerCookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.deactivate'],
+      })
+      .expect(201);
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+
+    const refused = await request(server)
+      .post(`/auth/users/${adaId}/deactivate`)
+      .set('Cookie', bearer(graceSession, ACCESS_TOKEN_COOKIE))
+      .expect(409);
+    expect(refused.body.status).toBe('error');
+    expect(refused.body.message).toBe('The last owner cannot be deactivated');
+
+    await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+
+    const listed = await request(server).get('/auth/users').set('Cookie', ownerCookie).expect(200);
+    const adaRow = (listed.body.data as { id: string }[]).find((user) => user.id === adaId);
+    expect(adaRow).toMatchObject({ id: adaId, deactivatedAt: null });
+  });
+
+  it('lets a second owner deactivate the first, who can no longer sign in or refresh', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', bearer(ada, ACCESS_TOKEN_COOKIE))
+      .send({ slug: 'owner' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(graceSession).roles).toEqual(['owner']);
+
+    await request(server)
+      .post(`/auth/users/${adaId}/deactivate`)
+      .set('Cookie', bearer(graceSession, ACCESS_TOKEN_COOKIE))
+      .expect(200);
+
+    const blocked = await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(401);
+    expect(blocked.body.status).toBe('error');
+
+    const refreshed = await request(server)
+      .post('/auth/refresh')
+      .set('Cookie', bearer(ada, REFRESH_TOKEN_COOKIE))
+      .expect(401);
+    expect(refreshed.body.status).toBe('error');
+  });
+
+  it('refuses a deactivated user\'s refresh token, including after they are restored', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    const noor = await request(server)
+      .post('/auth/register')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(201);
+    const noorId = noor.body.data.id;
+    if (typeof noorId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', ownerCookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.deactivate'],
+      })
+      .expect(201);
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    const clerkCookie = bearer(graceSession, ACCESS_TOKEN_COOKIE);
+
+    const noorSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(200);
+    const oldRefresh = bearer(noorSession, REFRESH_TOKEN_COOKIE);
+
+    await request(server).post(`/auth/users/${noorId}/deactivate`).set('Cookie', clerkCookie).expect(200);
+
+    const whileDeactivated = await request(server)
+      .post('/auth/refresh')
+      .set('Cookie', oldRefresh)
+      .expect(401);
+    expect(whileDeactivated.body.status).toBe('error');
+
+    await request(server).post(`/auth/users/${noorId}/restore`).set('Cookie', clerkCookie).expect(200);
+
+    const afterRestore = await request(server).post('/auth/refresh').set('Cookie', oldRefresh).expect(401);
+    expect(afterRestore.body.status).toBe('error');
+
+    await request(server)
+      .post('/auth/login')
+      .send({ email: 'noor@example.com', password: 'correct horse' })
+      .expect(200);
+  });
+
+  it('does not create a user except through registration', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const created = await request(server)
+      .post('/auth/users')
+      .set('Cookie', ownerCookie)
+      .send({ email: 'new@example.com', password: 'correct horse', name: 'New User' })
+      .expect(404);
+    expect(created.body.status).toBe('error');
+
+    const listed = await request(server).get('/auth/users').set('Cookie', ownerCookie).expect(200);
+    expect(listed.body.data).toEqual([
+      {
+        id: ada.body.data.id,
+        name: null,
+        email: 'ada@example.com',
+        phone: null,
+        deactivatedAt: null,
+      },
+    ]);
+  });
+
+  it('refuses to remove owner from the last active owner while a deactivated owner still holds it', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'owner' })
+      .expect(201);
+
+    await request(server).post(`/auth/users/${graceId}/deactivate`).set('Cookie', ownerCookie).expect(200);
+
+    const refused = await request(server)
+      .delete(`/auth/users/${adaId}/roles/owner`)
+      .set('Cookie', ownerCookie)
+      .expect(409);
+    expect(refused.body.status).toBe('error');
+    expect(refused.body.message).toBe('The last owner cannot lose the owner role');
+
+    const adaAgain = await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(adaAgain).roles).toEqual(['owner']);
+  });
+
+  it('lets a deactivated owner lose the owner role while another owner is still active', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'owner' })
+      .expect(201);
+
+    await request(server).post(`/auth/users/${graceId}/deactivate`).set('Cookie', ownerCookie).expect(200);
+    await request(server).post(`/auth/users/${graceId}/deactivate`).set('Cookie', ownerCookie).expect(200);
+
+    await request(server)
+      .delete(`/auth/users/${graceId}/roles/owner`)
+      .set('Cookie', ownerCookie)
+      .expect(200);
+
+    const adaAgain = await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(adaAgain).roles).toEqual(['owner']);
+
+    const graceAgain = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(401);
+    expect(graceAgain.body.status).toBe('error');
   });
 });
 

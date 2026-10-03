@@ -24,9 +24,13 @@ model Item {
 /// A person who can sign in. There is no tenant column: each deployment has its own database.
 model User {
   id            String         @id @default(cuid())
+  /// The person's name. One string. Role labels stay translated JSON.
+  name          String?
   email         String?        @unique
   phone         String?        @unique
   passwordHash  String?
+  /// Set when an operator deactivates the user. Null means they can sign in.
+  deactivatedAt DateTime?
   createdAt     DateTime       @default(now())
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]

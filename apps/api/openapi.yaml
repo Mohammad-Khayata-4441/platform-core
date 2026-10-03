@@ -188,6 +188,79 @@ paths:
                 $ref: '#/components/schemas/RoleAssignmentResponseDto'
       tags:
         - auth
+  /auth/users:
+    get:
+      operationId: Users.list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserListResponseDto'
+      tags:
+        - auth
+  /auth/users/{userId}:
+    patch:
+      operationId: Users.update
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDto'
+      tags:
+        - auth
+  /auth/users/{userId}/deactivate:
+    post:
+      operationId: Users.deactivate
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDto'
+      tags:
+        - auth
+  /auth/users/{userId}/restore:
+    post:
+      operationId: Users.restore
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponseDto'
+      tags:
+        - auth
   /example/items:
     get:
       operationId: Items.list
@@ -1069,6 +1142,80 @@ components:
           example: Role assigned
         data:
           $ref: '#/components/schemas/RoleAssignmentDto'
+      required:
+        - status
+        - message
+        - data
+    UpdateUserDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Ada Lovelace
+        email:
+          type: string
+          example: ada@example.com
+        phone:
+          type: string
+          example: '+15551212000'
+      required:
+        - name
+    UserViewDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          nullable: true
+          example: Ada Lovelace
+        email:
+          type: string
+          nullable: true
+          example: ada@example.com
+        phone:
+          type: string
+          nullable: true
+          example: '+15551212000'
+        deactivatedAt:
+          type: string
+          nullable: true
+          format: date-time
+          example: null
+      required:
+        - id
+        - name
+        - email
+        - phone
+        - deactivatedAt
+    UserResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: User updated
+        data:
+          $ref: '#/components/schemas/UserViewDto'
+      required:
+        - status
+        - message
+        - data
+    UserListResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Users
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserViewDto'
       required:
         - status
         - message

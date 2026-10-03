@@ -1,6 +1,30 @@
 import { OWNER_ROLE_SLUG } from './catalog.js';
 import { roleLabel, SessionError } from './session.js';
-import type { RoleRecord, SessionDelegate } from './types.js';
+import type { RoleRecord, SessionDelegate, SessionStores } from './types.js';
+
+/** Holders of a role who can still sign in. A deactivated owner does not count. */
+async function countActiveHolders(stores: SessionStores, roleId: string): Promise<number> {
+  const memberships = await stores.userRoles.findMany({ where: { roleId } });
+  let active = 0;
+  for (const membership of memberships) {
+    const holder = await stores.users.findFirst({ where: { id: membership.userId } });
+    if (holder && holder.deactivatedAt === null) active += 1;
+  }
+  return active;
+}
+
+/** True when this user is an active holder and nobody else who can sign in still holds the role. */
+export async function isLastActiveHolder(
+  stores: SessionStores,
+  roleId: string,
+  userId: string,
+): Promise<boolean> {
+  const held = await stores.userRoles.findMany({ where: { userId, roleId } });
+  if (held.length === 0) return false;
+  const holder = await stores.users.findFirst({ where: { id: userId } });
+  if (!holder || holder.deactivatedAt !== null) return false;
+  return (await countActiveHolders(stores, roleId)) <= 1;
+}
 
 export interface RoleView {
   slug: string;
@@ -98,9 +122,7 @@ export class RoleService {
     if (role.slug === OWNER_ROLE_SLUG) {
       await this.options.transaction(async (tx) => {
         await tx.roles.update({ where: { id: role.id }, data: { slug: role.slug } });
-        const holders = await tx.userRoles.count({ where: { roleId: role.id } });
-        const held = await tx.userRoles.findMany({ where: { userId, roleId: role.id } });
-        if (held.length > 0 && holders <= 1) {
+        if (await isLastActiveHolder(tx, role.id, userId)) {
           throw new SessionError('The last owner cannot lose the owner role', 409);
         }
         await tx.userRoles.deleteMany({ where: { userId, roleId: role.id } });

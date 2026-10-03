@@ -1,9 +1,11 @@
 /** A person who can sign in. The delegate returns this row. */
 export interface SessionUserRecord {
   id: string;
+  name: string | null;
   email: string | null;
   phone: string | null;
   passwordHash: string | null;
+  deactivatedAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -28,8 +30,18 @@ export interface UserWhere {
 /** Structural slice of `prisma.user`. This package does not import Prisma. */
 export interface UserDelegate {
   findFirst(args: { where: UserWhere }): Promise<SessionUserRecord | null>;
+  findMany(): Promise<SessionUserRecord[]>;
   create(args: {
     data: { email: string | null; phone: string | null; passwordHash: string };
+  }): Promise<SessionUserRecord>;
+  update(args: {
+    where: { id: string };
+    data: {
+      name?: string | null;
+      email?: string | null;
+      phone?: string | null;
+      deactivatedAt?: Date | null;
+    };
   }): Promise<SessionUserRecord>;
 }
 
@@ -43,6 +55,10 @@ export interface RefreshTokenDelegate {
     where: { id: string };
     data: { revokedAt: Date };
   }): Promise<SessionRefreshRecord>;
+  updateMany(args: {
+    where: { userId: string; revokedAt: null };
+    data: { revokedAt: Date };
+  }): Promise<{ count: number }>;
 }
 
 export interface PermissionRecord {

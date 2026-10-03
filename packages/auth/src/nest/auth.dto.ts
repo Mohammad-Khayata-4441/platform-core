@@ -154,6 +154,63 @@ export class SessionUserDto {
   roles!: SessionRoleDto[];
 }
 
+export class UpdateUserDto {
+  @ApiProperty({ type: 'string', example: 'Ada Lovelace' })
+  @IsString()
+  @IsNotEmpty()
+  name!: string;
+
+  @ApiPropertyOptional({ type: 'string', example: 'ada@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ type: 'string', example: '+15551212000' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  phone?: string;
+}
+
+export class UserViewDto {
+  @ApiProperty({ type: 'string' })
+  id!: string;
+
+  @ApiProperty({ type: 'string', nullable: true, example: 'Ada Lovelace' })
+  name!: string | null;
+
+  @ApiProperty({ type: 'string', nullable: true, example: 'ada@example.com' })
+  email!: string | null;
+
+  @ApiProperty({ type: 'string', nullable: true, example: '+15551212000' })
+  phone!: string | null;
+
+  @ApiProperty({ type: 'string', nullable: true, format: 'date-time', example: null })
+  deactivatedAt!: string | null;
+}
+
+export class UserResponseDto {
+  @ApiProperty({ type: 'string', example: 'success' })
+  status!: 'success';
+
+  @ApiProperty({ type: 'string', example: 'User updated' })
+  message!: string;
+
+  @ApiProperty({ type: () => UserViewDto })
+  data!: UserViewDto;
+}
+
+export class UserListResponseDto {
+  @ApiProperty({ type: 'string', example: 'success' })
+  status!: 'success';
+
+  @ApiProperty({ type: 'string', example: 'Users' })
+  message!: string;
+
+  @ApiProperty({ type: () => UserViewDto, isArray: true })
+  data!: UserViewDto[];
+}
+
 /** Success envelope for auth routes. `data` is null after logout. */
 export class SessionResponseDto {
   @ApiProperty({ type: 'string', example: 'success' })

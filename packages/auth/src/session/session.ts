@@ -124,18 +124,20 @@ export class SessionService {
     if (!user?.passwordHash || !(await verifyPassword(input.password, user.passwordHash))) {
       throw new SessionError('Invalid email, phone, or password', 401);
     }
+    if (user.deactivatedAt) {
+      throw new SessionError('Invalid email, phone, or password', 401);
+    }
     return this.issue(user);
   }
 
   async refresh(rawToken: string | undefined): Promise<IssuedSession> {
     const record = await this.findLiveRefresh(rawToken);
+    const user = await this.options.users.findFirst({ where: { id: record.userId } });
+    if (!user || user.deactivatedAt) throw new SessionError('Refresh token is invalid', 401);
     await this.options.refreshTokens.update({
       where: { id: record.id },
       data: { revokedAt: new Date() },
     });
-
-    const user = await this.options.users.findFirst({ where: { id: record.userId } });
-    if (!user) throw new SessionError('Refresh token is invalid', 401);
     return this.issue(user);
   }
 
@@ -254,13 +256,13 @@ export function roleLabel(value: unknown): Record<string, string> {
   return label;
 }
 
-function normalizeEmail(value: string | undefined): string | null {
+export function normalizeEmail(value: string | undefined): string | null {
   if (!value) return null;
   const email = value.trim().toLowerCase();
   return email.length > 0 ? email : null;
 }
 
-function normalizePhone(value: string | undefined): string | null {
+export function normalizePhone(value: string | undefined): string | null {
   if (!value) return null;
   const phone = value.trim();
   return phone.length > 0 ? phone : null;
