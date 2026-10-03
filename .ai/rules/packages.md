@@ -27,8 +27,8 @@ Both `api` and `dashboard` depend on `api-contracts`.
 | `@core/api-client` | Typed HTTP clients (`CrudClient`) |
 | `@core/backend-core` | CRUD bases, API response builder, query utils |
 | `@core/ui` | Shared UI components |
-| `@core/messaging` | Opt-in OTP, email, MsgPlus, and Twilio. No `db-prisma` dependency. Apps import `@core/messaging/nest` only when they send codes. |
-| `@core/auth` | Cookie sessions and password sign-in. No `db-prisma` dependency. The app passes Prisma accessors into `AuthModule`. |
+| `@core/messaging` | Opt-in OTP, email, MsgPlus, and Twilio. No `db-prisma` dependency. The API builds `OtpSignIn` from the core issuer and channel classes when OTP is configured. |
+| `@core/auth` | Cookie sessions, password sign-in, and OTP sign-in. No `db-prisma` or `messaging` dependency. The app passes Prisma accessors and, when messaging is configured, an `OtpSignIn`. |
 | `@core/eslint-config`, `@core/typescript-config` | Tooling |
 
 ## OpenAPI type generation

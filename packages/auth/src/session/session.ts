@@ -39,7 +39,7 @@ export class SessionError extends Error {
 }
 
 /**
- * Password registration and sessions.
+ * Password registration, OTP sign-in, and sessions.
  * Query shape lives here. The app supplies Prisma accessors and does not reimplement them.
  */
 export class SessionService {
@@ -127,6 +127,31 @@ export class SessionService {
     if (user.deactivatedAt) {
       throw new SessionError('Invalid email, phone, or password', 401);
     }
+    return this.issue(user);
+  }
+
+  /**
+   * Sign in with an address a code has already proved. Creates the user when
+   * the address is new. The first account still receives owner.
+   */
+  async signInWithVerifiedAddress(input: {
+    email?: string;
+    phone?: string;
+  }): Promise<IssuedSession> {
+    const email = normalizeEmail(input.email);
+    const phone = normalizePhone(input.phone);
+    if (email && phone) throw new SessionError('Send an email or a phone, not both', 400);
+    const where = email ? { email } : phone ? { phone } : null;
+    if (!where) throw new SessionError('Email or phone is required', 400);
+
+    const existing = await this.options.users.findFirst({ where });
+    if (existing?.deactivatedAt) throw new SessionError('Invalid or expired OTP', 401);
+    if (existing) return this.issue(existing);
+
+    const user = await this.options.users.create({
+      data: { email, phone, passwordHash: null },
+    });
+    await this.claimOwnerIfFirst(user.id);
     return this.issue(user);
   }
 

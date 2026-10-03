@@ -47,6 +47,44 @@ paths:
                 $ref: '#/components/schemas/SessionResponseDto'
       tags:
         - auth
+  /auth/otp/request:
+    post:
+      operationId: Auth.requestOtp
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpRequestDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
+  /auth/otp/verify:
+    post:
+      operationId: Auth.verifyOtp
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OtpVerifyDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
   /auth/refresh:
     post:
       operationId: Auth.refresh
@@ -1013,6 +1051,29 @@ components:
         - status
         - message
         - data
+    OtpRequestDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: ada@example.com
+        phone:
+          type: string
+          example: '+15551212000'
+    OtpVerifyDto:
+      type: object
+      properties:
+        email:
+          type: string
+          example: ada@example.com
+        phone:
+          type: string
+          example: '+15551212000'
+        code:
+          type: string
+          example: '123456'
+      required:
+        - code
     RoleLabelDto:
       type: object
       properties:
@@ -1146,20 +1207,6 @@ components:
         - status
         - message
         - data
-    UpdateUserDto:
-      type: object
-      properties:
-        name:
-          type: string
-          example: Ada Lovelace
-        email:
-          type: string
-          example: ada@example.com
-        phone:
-          type: string
-          example: '+15551212000'
-      required:
-        - name
     UserViewDto:
       type: object
       properties:
@@ -1188,21 +1235,6 @@ components:
         - email
         - phone
         - deactivatedAt
-    UserResponseDto:
-      type: object
-      properties:
-        status:
-          type: string
-          example: success
-        message:
-          type: string
-          example: User updated
-        data:
-          $ref: '#/components/schemas/UserViewDto'
-      required:
-        - status
-        - message
-        - data
     UserListResponseDto:
       type: object
       properties:
@@ -1216,6 +1248,35 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserViewDto'
+      required:
+        - status
+        - message
+        - data
+    UpdateUserDto:
+      type: object
+      properties:
+        name:
+          type: string
+          example: Ada Lovelace
+        email:
+          type: string
+          example: ada@example.com
+        phone:
+          type: string
+          example: '+15551212000'
+      required:
+        - name
+    UserResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: User updated
+        data:
+          $ref: '#/components/schemas/UserViewDto'
       required:
         - status
         - message

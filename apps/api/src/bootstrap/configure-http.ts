@@ -7,26 +7,24 @@ const DEFAULT_LOGIN_LIMIT = 10;
 const DEFAULT_LOGIN_WINDOW_MS = 60_000;
 
 export interface ConfigureHttpOptions {
-  /** Password sign-in attempts allowed per client in the window. */
+  /** Attempts allowed per client in the window, counted separately on each limited route. */
   loginRateLimit?: number;
   /** Window length in milliseconds. */
   loginRateWindowMs?: number;
 }
 
-/** Shared cookie, Helmet, and password sign-in limit for `main.ts` and the e2e app. */
+/** Shared cookie, Helmet, and public sign-in limits for `main.ts` and the e2e app. */
 export function configureHttp(app: INestApplication, options: ConfigureHttpOptions = {}): void {
   app.use(helmet());
   app.use(cookieParser());
-  app.use(
-    '/auth/login',
-    loginRateLimiter(
-      options.loginRateLimit ?? DEFAULT_LOGIN_LIMIT,
-      options.loginRateWindowMs ?? DEFAULT_LOGIN_WINDOW_MS,
-    ),
-  );
+  const limit = options.loginRateLimit ?? DEFAULT_LOGIN_LIMIT;
+  const windowMs = options.loginRateWindowMs ?? DEFAULT_LOGIN_WINDOW_MS;
+  app.use('/auth/login', attemptLimiter(limit, windowMs, 'Too many sign-in attempts'));
+  app.use('/auth/otp/request', attemptLimiter(limit, windowMs, 'Too many attempts'));
+  app.use('/auth/otp/verify', attemptLimiter(limit, windowMs, 'Too many attempts'));
 }
 
-function loginRateLimiter(limit: number, windowMs: number) {
+function attemptLimiter(limit: number, windowMs: number, message: string) {
   const hits = new Map<string, number[]>();
 
   return (req: Request, res: Response, next: NextFunction): void => {
@@ -41,9 +39,9 @@ function loginRateLimiter(limit: number, windowMs: number) {
     if (recent.length >= limit) {
       res.status(429).json({
         status: 'error',
-        message: 'Too many sign-in attempts',
+        message,
         data: null,
-        error: { code: 'TOO_MANY_REQUESTS', message: 'Too many sign-in attempts' },
+        error: { code: 'TOO_MANY_REQUESTS', message },
       });
       return;
     }

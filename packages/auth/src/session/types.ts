@@ -32,7 +32,7 @@ export interface UserDelegate {
   findFirst(args: { where: UserWhere }): Promise<SessionUserRecord | null>;
   findMany(): Promise<SessionUserRecord[]>;
   create(args: {
-    data: { email: string | null; phone: string | null; passwordHash: string };
+    data: { email: string | null; phone: string | null; passwordHash: string | null };
   }): Promise<SessionUserRecord>;
   update(args: {
     where: { id: string };

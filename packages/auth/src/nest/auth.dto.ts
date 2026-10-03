@@ -2,6 +2,39 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Type } from 'class-transformer';
 import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 
+/** Email or phone for a one-time code. The route accepts exactly one of them. */
+export class OtpRequestDto {
+  @ApiPropertyOptional({ type: 'string', example: 'ada@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ type: 'string', example: '+15551212000' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  phone?: string;
+}
+
+/** The one address the code was sent to, plus the code. */
+export class OtpVerifyDto {
+  @ApiPropertyOptional({ type: 'string', example: 'ada@example.com' })
+  @IsOptional()
+  @IsEmail()
+  email?: string;
+
+  @ApiPropertyOptional({ type: 'string', example: '+15551212000' })
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  phone?: string;
+
+  @ApiProperty({ type: 'string', example: '123456' })
+  @IsString()
+  @IsNotEmpty()
+  code!: string;
+}
+
 /** Email or phone, plus a password. Either identifier may be omitted; both may be sent. */
 export class PasswordCredentialsDto {
   @ApiPropertyOptional({ type: 'string', example: 'ada@example.com' })

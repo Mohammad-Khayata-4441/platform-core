@@ -52,6 +52,38 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/otp/request": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Auth.requestOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/otp/verify": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["Auth.verifyOtp"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/auth/refresh": {
         parameters: {
             query?: never;
@@ -306,6 +338,20 @@ export interface components {
             message: string;
             data: components["schemas"]["SessionUserDto"] | null;
         };
+        OtpRequestDto: {
+            /** @example ada@example.com */
+            email?: string;
+            /** @example +15551212000 */
+            phone?: string;
+        };
+        OtpVerifyDto: {
+            /** @example ada@example.com */
+            email?: string;
+            /** @example +15551212000 */
+            phone?: string;
+            /** @example 123456 */
+            code: string;
+        };
         RoleLabelDto: {
             /** @example كاتب */
             ar: string;
@@ -381,14 +427,6 @@ export interface components {
             message: string;
             data: components["schemas"]["RoleAssignmentDto"];
         };
-        UpdateUserDto: {
-            /** @example Ada Lovelace */
-            name: string;
-            /** @example ada@example.com */
-            email?: string;
-            /** @example +15551212000 */
-            phone?: string;
-        };
         UserViewDto: {
             id: string;
             /** @example Ada Lovelace */
@@ -403,19 +441,27 @@ export interface components {
              */
             deactivatedAt: string | null;
         };
-        UserResponseDto: {
-            /** @example success */
-            status: string;
-            /** @example User updated */
-            message: string;
-            data: components["schemas"]["UserViewDto"];
-        };
         UserListResponseDto: {
             /** @example success */
             status: string;
             /** @example Users */
             message: string;
             data: components["schemas"]["UserViewDto"][];
+        };
+        UpdateUserDto: {
+            /** @example Ada Lovelace */
+            name: string;
+            /** @example ada@example.com */
+            email?: string;
+            /** @example +15551212000 */
+            phone?: string;
+        };
+        UserResponseDto: {
+            /** @example success */
+            status: string;
+            /** @example User updated */
+            message: string;
+            data: components["schemas"]["UserViewDto"];
         };
         PaginationMetaDto: {
             /** @example 50 */
@@ -656,6 +702,52 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["PasswordCredentialsDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponseDto"];
+                };
+            };
+        };
+    };
+    "Auth.requestOtp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpRequestDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SessionResponseDto"];
+                };
+            };
+        };
+    };
+    "Auth.verifyOtp": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OtpVerifyDto"];
             };
         };
         responses: {

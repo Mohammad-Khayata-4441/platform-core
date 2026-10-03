@@ -1,8 +1,8 @@
 # @core/messaging
 
-Opt-in OTP, email, MsgPlus SMS, and Twilio WhatsApp. Nothing in `apps/api` imports this package. Add the dependency in the app that needs it.
+Opt-in OTP, email, MsgPlus SMS, and Twilio WhatsApp. The API imports it for OTP sign-in when `OTP_ENABLED` or `DEV_OTP_CODE` is set. Other apps add the dependency when they send codes.
 
-Login, users, stores, and JWT stay in the app. This package only issues a code, remembers it, and delivers it.
+Login, users, and JWT stay in `@core/auth`. This package only issues a code, remembers it, and delivers it.
 
 ## Use it without Nest
 

@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { RoleService } from '../session/roles.js';
 import { UserService } from '../session/users.js';
+import type { OtpSignIn } from '../session/otp.js';
 import { SessionService, type SessionServiceOptions } from '../session/session.js';
 import type { SessionDelegate } from '../session/types.js';
 import { AuthController } from './auth.controller.js';
@@ -19,6 +20,13 @@ export { AUTH_OPTIONS };
 export interface AuthModuleOptions extends SessionServiceOptions {
   /** When omitted, cookies are `Secure` only in production. */
   cookieSecure?: boolean;
+  /** When omitted, OTP routes refuse and do not create a session. */
+  otp?: OtpSignIn;
+  /**
+   * Boot upserts the permission catalog. Spec generation sets this to false
+   * because the document does not depend on those rows.
+   */
+  syncCatalogOnBoot?: boolean;
 }
 
 export interface AuthModuleAsyncOptions<T extends unknown[] = unknown[]> {
@@ -71,7 +79,7 @@ export class AuthModule {
           provide: SessionService,
           useFactory: async (options: AuthModuleOptions) => {
             const sessions = new SessionService(options);
-            await sessions.syncCatalog();
+            if (options.syncCatalogOnBoot !== false) await sessions.syncCatalog();
             return sessions;
           },
           inject: [AUTH_OPTIONS],
