@@ -86,6 +86,108 @@ paths:
                 $ref: '#/components/schemas/SessionResponseDto'
       tags:
         - auth
+  /auth/roles:
+    post:
+      operationId: Roles.create
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateRoleDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponseDto'
+      tags:
+        - auth
+    get:
+      operationId: Roles.list
+      parameters: []
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleListResponseDto'
+      tags:
+        - auth
+  /auth/roles/{slug}:
+    patch:
+      operationId: Roles.update
+      parameters:
+        - name: slug
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateRoleDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleResponseDto'
+      tags:
+        - auth
+  /auth/users/{userId}/roles:
+    post:
+      operationId: UserRoles.assign
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AssignRoleDto'
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleAssignmentResponseDto'
+      tags:
+        - auth
+  /auth/users/{userId}/roles/{slug}:
+    delete:
+      operationId: UserRoles.remove
+      parameters:
+        - name: userId
+          required: true
+          in: path
+          schema:
+            type: string
+        - name: slug
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RoleAssignmentResponseDto'
+      tags:
+        - auth
   /example/items:
     get:
       operationId: Items.list
@@ -834,6 +936,139 @@ components:
           type: object
           allOf:
             - $ref: '#/components/schemas/SessionUserDto'
+      required:
+        - status
+        - message
+        - data
+    RoleLabelDto:
+      type: object
+      properties:
+        ar:
+          type: string
+          example: كاتب
+        en:
+          type: string
+          example: Clerk
+      required:
+        - ar
+        - en
+    CreateRoleDto:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: clerk
+        label:
+          $ref: '#/components/schemas/RoleLabelDto'
+        permissions:
+          example:
+            - users.read
+          type: array
+          items:
+            type: string
+      required:
+        - slug
+        - label
+        - permissions
+    RoleViewDto:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: clerk
+        label:
+          type: object
+          additionalProperties:
+            type: string
+          example:
+            ar: كاتب
+            en: Clerk
+        permissions:
+          example:
+            - users.read
+          type: array
+          items:
+            type: string
+      required:
+        - slug
+        - label
+        - permissions
+    RoleResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Role created
+        data:
+          $ref: '#/components/schemas/RoleViewDto'
+      required:
+        - status
+        - message
+        - data
+    UpdateRoleDto:
+      type: object
+      properties:
+        label:
+          $ref: '#/components/schemas/RoleLabelDto'
+        permissions:
+          example:
+            - files.read
+          type: array
+          items:
+            type: string
+      required:
+        - label
+        - permissions
+    RoleListResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Roles
+        data:
+          type: array
+          items:
+            $ref: '#/components/schemas/RoleViewDto'
+      required:
+        - status
+        - message
+        - data
+    AssignRoleDto:
+      type: object
+      properties:
+        slug:
+          type: string
+          example: clerk
+      required:
+        - slug
+    RoleAssignmentDto:
+      type: object
+      properties:
+        userId:
+          type: string
+        slug:
+          type: string
+          example: clerk
+      required:
+        - userId
+        - slug
+    RoleAssignmentResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: Role assigned
+        data:
+          $ref: '#/components/schemas/RoleAssignmentDto'
       required:
         - status
         - message

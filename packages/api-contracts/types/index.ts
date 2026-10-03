@@ -100,6 +100,70 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/auth/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["Roles.list"];
+        put?: never;
+        post: operations["Roles.create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/roles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch: operations["Roles.update"];
+        trace?: never;
+    };
+    "/auth/users/{userId}/roles": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post: operations["UserRoles.assign"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/auth/users/{userId}/roles/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete: operations["UserRoles.remove"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/example/items": {
         parameters: {
             query?: never;
@@ -177,6 +241,81 @@ export interface components {
             /** @example Registered */
             message: string;
             data: components["schemas"]["SessionUserDto"] | null;
+        };
+        RoleLabelDto: {
+            /** @example كاتب */
+            ar: string;
+            /** @example Clerk */
+            en: string;
+        };
+        CreateRoleDto: {
+            /** @example clerk */
+            slug: string;
+            label: components["schemas"]["RoleLabelDto"];
+            /**
+             * @example [
+             *       "users.read"
+             *     ]
+             */
+            permissions: string[];
+        };
+        RoleViewDto: {
+            /** @example clerk */
+            slug: string;
+            /**
+             * @example {
+             *       "ar": "كاتب",
+             *       "en": "Clerk"
+             *     }
+             */
+            label: {
+                [key: string]: string;
+            };
+            /**
+             * @example [
+             *       "users.read"
+             *     ]
+             */
+            permissions: string[];
+        };
+        RoleResponseDto: {
+            /** @example success */
+            status: string;
+            /** @example Role created */
+            message: string;
+            data: components["schemas"]["RoleViewDto"];
+        };
+        UpdateRoleDto: {
+            label: components["schemas"]["RoleLabelDto"];
+            /**
+             * @example [
+             *       "files.read"
+             *     ]
+             */
+            permissions: string[];
+        };
+        RoleListResponseDto: {
+            /** @example success */
+            status: string;
+            /** @example Roles */
+            message: string;
+            data: components["schemas"]["RoleViewDto"][];
+        };
+        AssignRoleDto: {
+            /** @example clerk */
+            slug: string;
+        };
+        RoleAssignmentDto: {
+            userId: string;
+            /** @example clerk */
+            slug: string;
+        };
+        RoleAssignmentResponseDto: {
+            /** @example success */
+            status: string;
+            /** @example Role assigned */
+            message: string;
+            data: components["schemas"]["RoleAssignmentDto"];
         };
         PaginationMetaDto: {
             /** @example 50 */
@@ -483,6 +622,120 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SessionResponseDto"];
+                };
+            };
+        };
+    };
+    "Roles.list": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleListResponseDto"];
+                };
+            };
+        };
+    };
+    "Roles.create": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateRoleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"];
+                };
+            };
+        };
+    };
+    "Roles.update": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateRoleDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleResponseDto"];
+                };
+            };
+        };
+    };
+    "UserRoles.assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AssignRoleDto"];
+            };
+        };
+        responses: {
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleAssignmentResponseDto"];
+                };
+            };
+        };
+    };
+    "UserRoles.remove": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                userId: string;
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["RoleAssignmentResponseDto"];
                 };
             };
         };

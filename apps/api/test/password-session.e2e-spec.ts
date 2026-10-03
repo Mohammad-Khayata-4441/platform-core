@@ -134,6 +134,9 @@ function createFakeDelegate(): SessionDelegate {
       },
     },
     roles: {
+      async findMany() {
+        return [...roles];
+      },
       async findFirst(args) {
         return roles.find((row) => matches(row, args.where)) ?? null;
       },
@@ -161,7 +164,8 @@ function createFakeDelegate(): SessionDelegate {
         else release();
         const row = roles.find((entry) => entry.id === args.where.id);
         if (!row) throw new Error(`role ${args.where.id} not found`);
-        row.slug = args.data.slug;
+        if (typeof args.data.slug === 'string') row.slug = args.data.slug;
+        if (args.data.label) row.label = args.data.label;
         row.updatedAt = new Date();
         return row;
       },
@@ -232,6 +236,12 @@ function createFakeDelegate(): SessionDelegate {
         const row: UserRoleRecord = { userId: args.data.userId, roleId: args.data.roleId };
         userRoles.push(row);
         return row;
+      },
+      async deleteMany(args) {
+        const kept = userRoles.filter((row) => !matches(row, args.where));
+        const count = userRoles.length - kept.length;
+        userRoles.splice(0, userRoles.length, ...kept);
+        return { count };
       },
     },
   };
@@ -692,6 +702,456 @@ describe('owner role (e2e)', () => {
     expect(claims.roles).toEqual(['owner']);
     expect(claims.permissions.slice().sort()).toEqual([...CORE_PERMISSIONS].sort());
     expect(res.body.data.roles).toEqual([{ slug: 'owner', label: { en: 'Proprietor' } }]);
+  });
+});
+
+describe('roles (e2e)', () => {
+  let app: INestApplication;
+
+  afterEach(async () => {
+    if (app) await app.close();
+  });
+
+  it('lets an owner create a role with an Arabic and English label and list its permissions', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const registered = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+
+    const created = await request(server)
+      .post('/auth/roles')
+      .set('Cookie', bearer(registered, ACCESS_TOKEN_COOKIE))
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.read', 'files.read'],
+      })
+      .expect(201);
+
+    expect(created.body.status).toBe('success');
+    expect(created.body.data).toEqual({
+      slug: 'clerk',
+      label: { ar: 'كاتب', en: 'Clerk' },
+      permissions: ['files.read', 'users.read'],
+    });
+
+    const list = await request(server)
+      .get('/auth/roles')
+      .set('Cookie', bearer(registered, ACCESS_TOKEN_COOKIE))
+      .expect(200);
+
+    const clerk = (list.body.data as { slug: string }[]).find((role) => role.slug === 'clerk');
+    expect(clerk).toEqual({
+      slug: 'clerk',
+      label: { ar: 'كاتب', en: 'Clerk' },
+      permissions: ['files.read', 'users.read'],
+    });
+  });
+
+  it('lets an owner change a role label and its permissions without changing the slug', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const registered = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const cookie = bearer(registered, ACCESS_TOKEN_COOKIE);
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', cookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['users.read', 'files.read'],
+      })
+      .expect(201);
+
+    const updated = await request(server)
+      .patch('/auth/roles/clerk')
+      .set('Cookie', cookie)
+      .send({
+        label: { ar: 'موظف', en: 'Staff' },
+        permissions: ['files.read'],
+      })
+      .expect(200);
+
+    expect(updated.body.data).toEqual({
+      slug: 'clerk',
+      label: { ar: 'موظف', en: 'Staff' },
+      permissions: ['files.read'],
+    });
+
+    const list = await request(server).get('/auth/roles').set('Cookie', cookie).expect(200);
+    const clerks = (list.body.data as { slug: string }[]).filter((role) => role.slug === 'clerk');
+    expect(clerks).toEqual([
+      { slug: 'clerk', label: { ar: 'موظف', en: 'Staff' }, permissions: ['files.read'] },
+    ]);
+
+    const cleared = await request(server)
+      .patch('/auth/roles/clerk')
+      .set('Cookie', cookie)
+      .send({ label: { ar: 'موظف', en: 'Staff' }, permissions: [] })
+      .expect(200);
+    expect(cleared.body.data).toEqual({
+      slug: 'clerk',
+      label: { ar: 'موظف', en: 'Staff' },
+      permissions: [],
+    });
+
+    const afterClear = await request(server).get('/auth/roles').set('Cookie', cookie).expect(200);
+    const clearedClerk = (afterClear.body.data as { slug: string }[]).find((role) => role.slug === 'clerk');
+    expect(clearedClerk).toEqual({
+      slug: 'clerk',
+      label: { ar: 'موظف', en: 'Staff' },
+      permissions: [],
+    });
+  });
+
+  it('keeps a single owner role when its label changes', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const registered = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const cookie = bearer(registered, ACCESS_TOKEN_COOKIE);
+
+    const updated = await request(server)
+      .patch('/auth/roles/owner')
+      .set('Cookie', cookie)
+      .send({
+        label: { ar: 'المالك', en: 'Proprietor' },
+        permissions: CORE_PERMISSIONS,
+      })
+      .expect(200);
+
+    expect(updated.body.data).toEqual({
+      slug: 'owner',
+      label: { ar: 'المالك', en: 'Proprietor' },
+      permissions: [...CORE_PERMISSIONS].sort(),
+    });
+
+    const list = await request(server).get('/auth/roles').set('Cookie', cookie).expect(200);
+    const owners = (list.body.data as { slug: string }[]).filter((role) => role.slug === 'owner');
+    expect(owners).toEqual([
+      {
+        slug: 'owner',
+        label: { ar: 'المالك', en: 'Proprietor' },
+        permissions: [...CORE_PERMISSIONS].sort(),
+      },
+    ]);
+  });
+
+  it('lets an owner assign a role to another user and remove it again', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const cookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', cookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['files.read'],
+      })
+      .expect(201);
+
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', cookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const assigned = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(assigned)).toEqual({ roles: ['clerk'], permissions: ['files.read'] });
+
+    await request(server).delete(`/auth/users/${graceId}/roles/clerk`).set('Cookie', cookie).expect(200);
+
+    const removed = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(removed)).toEqual({ roles: [], permissions: [] });
+  });
+
+  it('does not offer a way to delete a role', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const registered = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const cookie = bearer(registered, ACCESS_TOKEN_COOKIE);
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', cookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['files.read'],
+      })
+      .expect(201);
+
+    await request(server).delete('/auth/roles/clerk').set('Cookie', cookie).expect(404);
+
+    const list = await request(server).get('/auth/roles').set('Cookie', cookie).expect(200);
+    const clerk = (list.body.data as { slug: string }[]).find((role) => role.slug === 'clerk');
+    expect(clerk).toEqual({
+      slug: 'clerk',
+      label: { ar: 'كاتب', en: 'Clerk' },
+      permissions: ['files.read'],
+    });
+  });
+
+  it('refuses to remove owner from the only owner', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+
+    const refused = await request(server)
+      .delete(`/auth/users/${adaId}/roles/owner`)
+      .set('Cookie', bearer(ada, ACCESS_TOKEN_COOKIE))
+      .expect(409);
+    expect(refused.body.status).toBe('error');
+
+    const again = await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(again).roles).toContain('owner');
+  });
+
+  it('lets a second owner remove owner from the first', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', bearer(ada, ACCESS_TOKEN_COOKIE))
+      .send({ slug: 'owner' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(graceSession).roles).toEqual(['owner']);
+
+    await request(server)
+      .delete(`/auth/users/${adaId}/roles/owner`)
+      .set('Cookie', bearer(graceSession, ACCESS_TOKEN_COOKIE))
+      .expect(200);
+
+    const adaAgain = await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(adaAgain).roles).toEqual([]);
+
+    const graceAgain = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(graceAgain).roles).toEqual(['owner']);
+  });
+
+  it('keeps one owner when two owners remove each other at the same time', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', bearer(ada, ACCESS_TOKEN_COOKIE))
+      .send({ slug: 'owner' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+
+    const [removedGrace, removedAda] = await Promise.all([
+      request(server)
+        .delete(`/auth/users/${graceId}/roles/owner`)
+        .set('Cookie', bearer(ada, ACCESS_TOKEN_COOKIE)),
+      request(server)
+        .delete(`/auth/users/${adaId}/roles/owner`)
+        .set('Cookie', bearer(graceSession, ACCESS_TOKEN_COOKIE)),
+    ]);
+    expect([removedAda.status, removedGrace.status].sort()).toEqual([200, 409]);
+
+    const afterwards = await Promise.all([
+      request(server).post('/auth/login').send({ email: 'ada@example.com', password: 'correct horse' }),
+      request(server).post('/auth/login').send({ email: 'grace@example.com', password: 'correct horse' }),
+    ]);
+    const owners = afterwards.filter((res) => accessClaims(res).roles.includes('owner'));
+    expect(owners).toHaveLength(1);
+  });
+
+  it('refuses a role change or an assignment when the caller lacks that permission', async () => {
+    app = await createApp();
+    const server = app.getHttpServer();
+    const ada = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const adaId = ada.body.data.id;
+    if (typeof adaId !== 'string') throw new Error('registered user is missing an id');
+    const ownerCookie = bearer(ada, ACCESS_TOKEN_COOKIE);
+
+    const grace = await request(server)
+      .post('/auth/register')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(201);
+    const graceId = grace.body.data.id;
+    if (typeof graceId !== 'string') throw new Error('registered user is missing an id');
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', ownerCookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['files.read'],
+      })
+      .expect(201);
+    await request(server)
+      .post(`/auth/users/${graceId}/roles`)
+      .set('Cookie', ownerCookie)
+      .send({ slug: 'clerk' })
+      .expect(201);
+
+    const graceSession = await request(server)
+      .post('/auth/login')
+      .send({ email: 'grace@example.com', password: 'correct horse' })
+      .expect(200);
+    const clerkCookie = bearer(graceSession, ACCESS_TOKEN_COOKIE);
+
+    const update = await request(server)
+      .patch('/auth/roles/clerk')
+      .set('Cookie', clerkCookie)
+      .send({ label: { ar: 'موظف', en: 'Staff' }, permissions: ['files.read'] })
+      .expect(403);
+    expect(update.body.status).toBe('error');
+
+    const list = await request(server).get('/auth/roles').set('Cookie', ownerCookie).expect(200);
+    const clerk = (list.body.data as { slug: string }[]).find((role) => role.slug === 'clerk');
+    expect(clerk).toEqual({
+      slug: 'clerk',
+      label: { ar: 'كاتب', en: 'Clerk' },
+      permissions: ['files.read'],
+    });
+
+    const assignment = await request(server)
+      .post(`/auth/users/${adaId}/roles`)
+      .set('Cookie', clerkCookie)
+      .send({ slug: 'clerk' })
+      .expect(403);
+    expect(assignment.body.status).toBe('error');
+
+    const adaAgain = await request(server)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(adaAgain).roles).toEqual(['owner']);
+  });
+
+  it('keeps the grants an owner set on a custom role after another boot', async () => {
+    const delegate = createFakeDelegate();
+    app = await createApp(delegate, { extraPermissions: ['orders.read'] });
+    const server = app.getHttpServer();
+    const registered = await request(server)
+      .post('/auth/register')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(201);
+    const cookie = bearer(registered, ACCESS_TOKEN_COOKIE);
+
+    await request(server)
+      .post('/auth/roles')
+      .set('Cookie', cookie)
+      .send({
+        slug: 'clerk',
+        label: { ar: 'كاتب', en: 'Clerk' },
+        permissions: ['files.read'],
+      })
+      .expect(201);
+
+    await app.close();
+    app = await createApp(delegate, { extraPermissions: ['billing.read'] });
+    const rebooted = app.getHttpServer();
+
+    const owner = await request(rebooted)
+      .post('/auth/login')
+      .send({ email: 'ada@example.com', password: 'correct horse' })
+      .expect(200);
+    expect(accessClaims(owner).roles).toEqual(['owner']);
+    expect(accessClaims(owner).permissions.slice().sort()).toEqual(
+      [...CORE_PERMISSIONS, 'billing.read'].sort(),
+    );
+
+    const list = await request(rebooted)
+      .get('/auth/roles')
+      .set('Cookie', bearer(owner, ACCESS_TOKEN_COOKIE))
+      .expect(200);
+    const roles = list.body.data as { slug: string; label: Record<string, string>; permissions: string[] }[];
+    expect(roles.find((role) => role.slug === 'clerk')).toEqual({
+      slug: 'clerk',
+      label: { ar: 'كاتب', en: 'Clerk' },
+      permissions: ['files.read'],
+    });
+    expect(roles.find((role) => role.slug === 'owner')?.permissions).toEqual(
+      [...CORE_PERMISSIONS, 'billing.read'].sort(),
+    );
   });
 });
 

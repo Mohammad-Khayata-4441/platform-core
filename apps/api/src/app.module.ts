@@ -68,8 +68,8 @@ function jwtSecret(value: string | undefined, fallback: string): string {
       }),
     },
     { provide: APP_FILTER, useClass: ApiExceptionFilter },
-    // JwtAuthGuard stays on /auth/me. Do not register it globally: items must work without a session.
-    // PERMISSION_CATALOG stays unset. Route checks are a later ticket. Boot still stores owner grants.
+    // JwtAuthGuard stays on /auth/me and the role routes. Do not register it globally: items must work without a session.
+    // PERMISSION_CATALOG stays unset. Role routes read permissions from the access token.
     // Messaging is opt-in. Add @core/messaging and import MessagingModule
     // from @core/messaging/nest when this API should send OTP, email, MsgPlus, or Twilio.
   ],

@@ -1,5 +1,6 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Type } from 'class-transformer';
+import { IsArray, IsEmail, IsNotEmpty, IsOptional, IsString, ValidateNested } from 'class-validator';
 
 /** Email or phone, plus a password. Either identifier may be omitted; both may be sent. */
 export class PasswordCredentialsDto {
@@ -18,6 +19,113 @@ export class PasswordCredentialsDto {
   @IsString()
   @IsNotEmpty()
   password!: string;
+}
+
+/** Arabic and English label stored on a role. Boot does not look the role up by either value. */
+export class RoleLabelDto {
+  @ApiProperty({ type: 'string', example: 'كاتب' })
+  @IsString()
+  @IsNotEmpty()
+  ar!: string;
+
+  @ApiProperty({ type: 'string', example: 'Clerk' })
+  @IsString()
+  @IsNotEmpty()
+  en!: string;
+}
+
+export class CreateRoleDto {
+  @ApiProperty({ type: 'string', example: 'clerk' })
+  @IsString()
+  @IsNotEmpty()
+  slug!: string;
+
+  @ApiProperty({ type: () => RoleLabelDto })
+  @ValidateNested()
+  @Type(() => RoleLabelDto)
+  label!: RoleLabelDto;
+
+  @ApiProperty({ type: 'string', isArray: true, example: ['users.read'] })
+  @IsArray()
+  @IsString({ each: true })
+  permissions!: string[];
+}
+
+/** New label and grants. The slug in the URL is the identity and is left unchanged. */
+export class UpdateRoleDto {
+  @ApiProperty({ type: () => RoleLabelDto })
+  @ValidateNested()
+  @Type(() => RoleLabelDto)
+  label!: RoleLabelDto;
+
+  @ApiProperty({ type: 'string', isArray: true, example: ['files.read'] })
+  @IsArray()
+  @IsString({ each: true })
+  permissions!: string[];
+}
+
+export class AssignRoleDto {
+  @ApiProperty({ type: 'string', example: 'clerk' })
+  @IsString()
+  @IsNotEmpty()
+  slug!: string;
+}
+
+export class RoleAssignmentDto {
+  @ApiProperty({ type: 'string' })
+  userId!: string;
+
+  @ApiProperty({ type: 'string', example: 'clerk' })
+  slug!: string;
+}
+
+export class RoleAssignmentResponseDto {
+  @ApiProperty({ type: 'string', example: 'success' })
+  status!: 'success';
+
+  @ApiProperty({ type: 'string', example: 'Role assigned' })
+  message!: string;
+
+  @ApiProperty({ type: () => RoleAssignmentDto })
+  data!: RoleAssignmentDto;
+}
+
+export class RoleViewDto {
+  @ApiProperty({ type: 'string', example: 'clerk' })
+  slug!: string;
+
+  /** Translated label. The boot owner row is English only until an owner edits it. */
+  @ApiProperty({
+    type: 'object',
+    additionalProperties: { type: 'string' },
+    example: { ar: 'كاتب', en: 'Clerk' },
+  })
+  label!: Record<string, string>;
+
+  @ApiProperty({ type: 'string', isArray: true, example: ['users.read'] })
+  permissions!: string[];
+}
+
+export class RoleResponseDto {
+  @ApiProperty({ type: 'string', example: 'success' })
+  status!: 'success';
+
+  @ApiProperty({ type: 'string', example: 'Role created' })
+  message!: string;
+
+  @ApiProperty({ type: () => RoleViewDto })
+  data!: RoleViewDto;
+}
+
+export class RoleListResponseDto {
+  @ApiProperty({ type: 'string', example: 'success' })
+  status!: 'success';
+
+  @ApiProperty({ type: 'string', example: 'Roles' })
+  message!: string;
+
+  @ApiProperty({ type: () => RoleViewDto, isArray: true })
+  data!: RoleViewDto[];
 }
 
 export class SessionRoleDto {

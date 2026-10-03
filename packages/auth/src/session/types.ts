@@ -84,8 +84,12 @@ export interface PermissionDelegate {
 /** Structural slice of `prisma.role`. `update` of the same slug locks the row. */
 export interface RoleDelegate {
   findFirst(args: { where: { id?: string; slug?: string } }): Promise<RoleRecord | null>;
-  create(args: { data: { slug: string; label: { en: string } } }): Promise<RoleRecord>;
-  update(args: { where: { id: string }; data: { slug: string } }): Promise<RoleRecord>;
+  findMany(): Promise<RoleRecord[]>;
+  create(args: { data: { slug: string; label: Record<string, string> } }): Promise<RoleRecord>;
+  update(args: {
+    where: { id: string };
+    data: { slug?: string; label?: Record<string, string> };
+  }): Promise<RoleRecord>;
 }
 
 /** Structural slice of `prisma.rolePermission`. */
@@ -93,7 +97,7 @@ export interface RolePermissionDelegate {
   findMany(args: { where: { roleId: string } }): Promise<RolePermissionRecord[]>;
   create(args: { data: { roleId: string; permissionId: string } }): Promise<RolePermissionRecord>;
   deleteMany(args: {
-    where: { roleId: string; permissionId: { notIn: string[] } };
+    where: { roleId: string; permissionId?: { notIn: string[] } };
   }): Promise<{ count: number }>;
 }
 
@@ -102,6 +106,7 @@ export interface UserRoleDelegate {
   findMany(args: { where: { userId?: string; roleId?: string } }): Promise<UserRoleRecord[]>;
   count(args: { where: { roleId: string } }): Promise<number>;
   create(args: { data: { userId: string; roleId: string } }): Promise<UserRoleRecord>;
+  deleteMany(args: { where: { userId: string; roleId: string } }): Promise<{ count: number }>;
 }
 
 /** Accessors a session use-case may call. Inside a transaction these are the tx client. */

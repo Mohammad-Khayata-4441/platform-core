@@ -4,9 +4,11 @@ import {
   Module,
   type ModuleMetadata,
 } from '@nestjs/common';
+import { RoleService } from '../session/roles.js';
 import { SessionService, type SessionServiceOptions } from '../session/session.js';
 import type { SessionDelegate } from '../session/types.js';
 import { AuthController } from './auth.controller.js';
+import { RolesController, UserRolesController } from './roles.controller.js';
 import { AUTH_OPTIONS } from './auth.tokens.js';
 import { ACCESS_TOKEN_VERIFIER } from './guards.js';
 
@@ -50,9 +52,14 @@ export class AuthModule {
     return {
       module: AuthModule,
       imports: imports ?? [],
-      controllers: [AuthController],
+      controllers: [AuthController, RolesController, UserRolesController],
       providers: [
         ...(optionProviders ?? []),
+        {
+          provide: RoleService,
+          useFactory: (options: AuthModuleOptions) => new RoleService(options),
+          inject: [AUTH_OPTIONS],
+        },
         {
           provide: SessionService,
           useFactory: async (options: AuthModuleOptions) => {

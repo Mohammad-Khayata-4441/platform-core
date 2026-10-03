@@ -245,7 +245,7 @@ export class SessionService {
   }
 }
 
-function roleLabel(value: unknown): Record<string, string> {
+export function roleLabel(value: unknown): Record<string, string> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   const label: Record<string, string> = {};
   for (const [key, entry] of Object.entries(value)) {

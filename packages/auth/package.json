@@ -37,6 +37,7 @@
     "dependencies":  {
                          "@core/api-contracts":  "workspace:*",
                          "@nestjs/swagger":  "^12.0.2",
+                         "class-transformer":  "^0.5.1",
                          "class-validator":  "^0.14.4"
                      },
     "peerDependencies":  {
