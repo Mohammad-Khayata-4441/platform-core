@@ -47,6 +47,25 @@ paths:
                 $ref: '#/components/schemas/SessionResponseDto'
       tags:
         - auth
+  /auth/google:
+    post:
+      operationId: Auth.google
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/GoogleTokenDto'
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SessionResponseDto'
+      tags:
+        - auth
   /auth/otp/request:
     post:
       operationId: Auth.requestOtp
@@ -1051,6 +1070,14 @@ components:
         - status
         - message
         - data
+    GoogleTokenDto:
+      type: object
+      properties:
+        idToken:
+          type: string
+          example: google-id-token
+      required:
+        - idToken
     OtpRequestDto:
       type: object
       properties:

@@ -1,4 +1,5 @@
 import { CORE_PERMISSION_KEYS, OWNER_ROLE_LABEL, OWNER_ROLE_SLUG } from './catalog.js';
+import type { GoogleIdentity } from './google.js';
 import { durationToMs, hashRefreshToken, newRefreshToken, signAccessToken, verifyAccessToken } from './tokens.js';
 import { hashPassword, verifyPassword } from './password.js';
 import type {
@@ -39,7 +40,7 @@ export class SessionError extends Error {
 }
 
 /**
- * Password registration, OTP sign-in, and sessions.
+ * Password registration, OTP sign-in, Google sign-in, and sessions.
  * Query shape lives here. The app supplies Prisma accessors and does not reimplement them.
  */
 export class SessionService {
@@ -107,7 +108,7 @@ export class SessionService {
     }
 
     const user = await this.options.users.create({
-      data: { email, phone, passwordHash: await hashPassword(input.password) },
+      data: { email, phone, googleSubject: null, passwordHash: await hashPassword(input.password) },
     });
     await this.claimOwnerIfFirst(user.id);
     return this.issue(user);
@@ -149,7 +150,33 @@ export class SessionService {
     if (existing) return this.issue(existing);
 
     const user = await this.options.users.create({
-      data: { email, phone, passwordHash: null },
+      data: { email, phone, googleSubject: null, passwordHash: null },
+    });
+    await this.claimOwnerIfFirst(user.id);
+    return this.issue(user);
+  }
+
+  /**
+   * Sign in with a Google subject the verifier has already accepted.
+   * The first account still receives owner. A password is not required.
+   */
+  async signInWithGoogle(identity: GoogleIdentity): Promise<IssuedSession> {
+    const subject = identity.subject.trim();
+    if (!subject) throw new SessionError('Invalid Google token', 401);
+
+    const existing = await this.options.users.findFirst({ where: { googleSubject: subject } });
+    if (existing?.deactivatedAt) throw new SessionError('Invalid Google token', 401);
+    if (existing) return this.issue(existing);
+
+    const email = normalizeEmail(identity.email ?? undefined);
+    const taken = email ? await this.options.users.findFirst({ where: { email } }) : null;
+    const user = await this.options.users.create({
+      data: {
+        email: taken ? null : email,
+        phone: null,
+        googleSubject: subject,
+        passwordHash: null,
+      },
     });
     await this.claimOwnerIfFirst(user.id);
     return this.issue(user);

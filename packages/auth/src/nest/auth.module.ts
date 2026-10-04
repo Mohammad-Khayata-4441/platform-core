@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { RoleService } from '../session/roles.js';
 import { UserService } from '../session/users.js';
+import type { GoogleSignIn } from '../session/google.js';
 import type { OtpSignIn } from '../session/otp.js';
 import { SessionService, type SessionServiceOptions } from '../session/session.js';
 import type { SessionDelegate } from '../session/types.js';
@@ -22,6 +23,8 @@ export interface AuthModuleOptions extends SessionServiceOptions {
   cookieSecure?: boolean;
   /** When omitted, OTP routes refuse and do not create a session. */
   otp?: OtpSignIn;
+  /** When omitted, the Google route refuses and does not create a session. */
+  google?: GoogleSignIn;
   /**
    * Boot upserts the permission catalog. Spec generation sets this to false
    * because the document does not depend on those rows.

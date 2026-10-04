@@ -4,6 +4,7 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiExceptionFilter, validationExceptionFactory } from '@core/backend-core';
 import { AuthModule } from '@core/auth/nest';
 import { PrismaModule, PrismaService } from '@core/db-prisma/nest';
+import { googleSignInFromEnv } from './auth/google-sign-in.js';
 import { otpSignInFromEnv } from './auth/otp-sign-in.js';
 import { HealthController } from './health/health.controller.js';
 import { ItemsModule } from './modules/example/items/items.module.js';
@@ -32,6 +33,7 @@ function jwtSecret(value: string | undefined, fallback: string): string {
       inject: [PrismaService, ConfigService],
       useFactory: (prisma: PrismaService, config: ConfigService) => {
         const otp = otpSignInFromEnv();
+        const google = googleSignInFromEnv();
         return {
           users: prisma.user,
           refreshTokens: prisma.refreshToken,
@@ -55,6 +57,7 @@ function jwtSecret(value: string | undefined, fallback: string): string {
           accessTtl: config.get<string>('jwt.accessExpiresIn') ?? '24h',
           refreshTtl: config.get<string>('jwt.refreshExpiresIn') ?? '7d',
           ...(otp ? { otp } : {}),
+          ...(google ? { google } : {}),
           ...(process.env.GENERATE_SPEC === 'true' ? { syncCatalogOnBoot: false } : {}),
         };
       },
@@ -77,6 +80,7 @@ function jwtSecret(value: string | undefined, fallback: string): string {
     // JwtAuthGuard stays on /auth/me and the role routes. Do not register it globally: items must work without a session.
     // PERMISSION_CATALOG stays unset. Role routes read permissions from the access token.
     // OTP routes refuse until OTP_ENABLED or DEV_OTP_CODE is set. See otpSignInFromEnv.
+    // The Google route refuses until GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are both set.
   ],
 })
 export class AppModule implements NestModule {

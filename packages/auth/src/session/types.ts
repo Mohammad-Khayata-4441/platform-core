@@ -4,6 +4,7 @@ export interface SessionUserRecord {
   name: string | null;
   email: string | null;
   phone: string | null;
+  googleSubject: string | null;
   passwordHash: string | null;
   deactivatedAt: Date | null;
   createdAt: Date;
@@ -24,6 +25,7 @@ export interface UserWhere {
   id?: string;
   email?: string | null;
   phone?: string | null;
+  googleSubject?: string | null;
   OR?: UserWhere[];
 }
 
@@ -32,7 +34,12 @@ export interface UserDelegate {
   findFirst(args: { where: UserWhere }): Promise<SessionUserRecord | null>;
   findMany(): Promise<SessionUserRecord[]>;
   create(args: {
-    data: { email: string | null; phone: string | null; passwordHash: string | null };
+    data: {
+      email: string | null;
+      phone: string | null;
+      googleSubject: string | null;
+      passwordHash: string | null;
+    };
   }): Promise<SessionUserRecord>;
   update(args: {
     where: { id: string };

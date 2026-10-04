@@ -14,10 +14,17 @@ import {
 import { ApiBody, ApiCreatedResponse, ApiOkResponse, ApiTags } from '@nestjs/swagger';
 import { REFRESH_TOKEN_COOKIE } from '../constants.js';
 import { applySessionCookies, clearSessionCookies, type SessionCookieResponse } from '../session/cookies.js';
+import type { GoogleSignIn } from '../session/google.js';
 import type { OtpSignIn } from '../session/otp.js';
 import { normalizeEmail, normalizePhone, SessionError, SessionService } from '../session/session.js';
 import type { AuthClaims } from '../types.js';
-import { OtpRequestDto, OtpVerifyDto, PasswordCredentialsDto, SessionResponseDto } from './auth.dto.js';
+import {
+  GoogleTokenDto,
+  OtpRequestDto,
+  OtpVerifyDto,
+  PasswordCredentialsDto,
+  SessionResponseDto,
+} from './auth.dto.js';
 import type { AuthModuleOptions } from './auth.module.js';
 import { AUTH_OPTIONS } from './auth.tokens.js';
 import { CurrentUser, JwtAuthGuard } from './guards.js';
@@ -70,6 +77,22 @@ export class AuthController {
     @Res({ passthrough: true }) res: SessionCookieResponse,
   ) {
     const session = await this.run(() => this.sessions.login(body));
+    applySessionCookies(res, session, this.secure);
+    return success('Signed in', session.user);
+  }
+
+  @Post('google')
+  @HttpCode(200)
+  @ApiBody({ type: GoogleTokenDto })
+  @ApiOkResponse({ type: SessionResponseDto })
+  async google(
+    @Body() body: GoogleTokenDto,
+    @Res({ passthrough: true }) res: SessionCookieResponse,
+  ) {
+    const session = await this.run(async () => {
+      const identity = await this.requireGoogle().verify(body.idToken);
+      return this.sessions.signInWithGoogle(identity);
+    });
     applySessionCookies(res, session, this.secure);
     return success('Signed in', session.user);
   }
@@ -132,6 +155,11 @@ export class AuthController {
 
   private get secure(): boolean {
     return this.options.cookieSecure ?? process.env.NODE_ENV === 'production';
+  }
+
+  private requireGoogle(): GoogleSignIn {
+    if (!this.options.google) throw new SessionError('Google is not configured', 400);
+    return this.options.google;
   }
 
   private requireOtp(): OtpSignIn {

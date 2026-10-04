@@ -28,6 +28,8 @@ model User {
   name          String?
   email         String?        @unique
   phone         String?        @unique
+  /// Google account subject (`sub`). Set when this person signs in with Google.
+  googleSubject String?        @unique
   passwordHash  String?
   /// Set when an operator deactivates the user. Null means they can sign in.
   deactivatedAt DateTime?

@@ -20,6 +20,7 @@ export function configureHttp(app: INestApplication, options: ConfigureHttpOptio
   const limit = options.loginRateLimit ?? DEFAULT_LOGIN_LIMIT;
   const windowMs = options.loginRateWindowMs ?? DEFAULT_LOGIN_WINDOW_MS;
   app.use('/auth/login', attemptLimiter(limit, windowMs, 'Too many sign-in attempts'));
+  app.use('/auth/google', attemptLimiter(limit, windowMs, 'Too many sign-in attempts'));
   app.use('/auth/otp/request', attemptLimiter(limit, windowMs, 'Too many attempts'));
   app.use('/auth/otp/verify', attemptLimiter(limit, windowMs, 'Too many attempts'));
 }

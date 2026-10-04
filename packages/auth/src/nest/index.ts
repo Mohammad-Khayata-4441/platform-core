@@ -14,6 +14,7 @@ export type { AuthenticatedRequest, AuthClaims, PermissionCatalog, TokenVerifier
 export { AuthModule } from './auth.module.js';
 export type { AuthModuleAsyncOptions, AuthModuleOptions } from './auth.module.js';
 export { AUTH_OPTIONS } from './auth.tokens.js';
+export type { GoogleIdentity, GoogleSignIn } from '../session/google.js';
 export type { OtpSignIn } from '../session/otp.js';
 export { SessionError, SessionService } from '../session/session.js';
 export type {

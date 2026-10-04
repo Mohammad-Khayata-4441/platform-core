@@ -8,6 +8,7 @@ import { configureHttp } from '../src/bootstrap/configure-http.js';
 import { ACCESS_TOKEN_COOKIE } from '@core/auth';
 import {
   AuthModule,
+  type GoogleSignIn,
   type OtpSignIn,
   type PermissionRecord,
   type RolePermissionRecord,
@@ -88,6 +89,7 @@ export function createFakeDelegate(): SessionDelegate {
           name: null,
           email: args.data.email,
           phone: args.data.phone,
+          googleSubject: args.data.googleSubject,
           passwordHash: args.data.passwordHash,
           deactivatedAt: null,
           createdAt: now,
@@ -333,7 +335,12 @@ export function accessClaims(res: Response): { roles: string[]; permissions: str
 
 export async function createApp(
   delegate: SessionDelegate = createFakeDelegate(),
-  options?: { loginRateLimit?: number; extraPermissions?: string[]; otp?: OtpSignIn },
+  options?: {
+    loginRateLimit?: number;
+    extraPermissions?: string[];
+    otp?: OtpSignIn;
+    google?: GoogleSignIn;
+  },
 ): Promise<INestApplication> {
   const mod = await Test.createTestingModule({
     imports: [
@@ -347,6 +354,7 @@ export async function createApp(
         transaction: (run) => delegate.transaction(run),
         extraPermissions: options?.extraPermissions,
         otp: options?.otp,
+        google: options?.google,
         accessSecret: 'test-access-secret',
         refreshSecret: 'test-refresh-secret',
         accessTtl: '15m',

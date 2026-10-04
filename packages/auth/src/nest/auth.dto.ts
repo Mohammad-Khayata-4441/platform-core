@@ -35,6 +35,14 @@ export class OtpVerifyDto {
   code!: string;
 }
 
+/** Identity token from Google. The route verifies it before creating a session. */
+export class GoogleTokenDto {
+  @ApiProperty({ type: 'string', example: 'google-id-token' })
+  @IsString()
+  @IsNotEmpty()
+  idToken!: string;
+}
+
 /** Email or phone, plus a password. Either identifier may be omitted; both may be sent. */
 export class PasswordCredentialsDto {
   @ApiPropertyOptional({ type: 'string', example: 'ada@example.com' })
