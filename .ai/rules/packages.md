@@ -29,6 +29,7 @@ Both `api` and `dashboard` depend on `api-contracts`.
 | `@core/ui` | Shared UI components |
 | `@core/messaging` | Opt-in OTP, email, MsgPlus, and Twilio. No `db-prisma` dependency. The API builds `OtpSignIn` from the core issuer and channel classes when OTP is configured. |
 | `@core/auth` | Cookie sessions, password sign-in, OTP sign-in, and Google sign-in. No `db-prisma` or `messaging` dependency. The app passes Prisma accessors, an `OtpSignIn` when messaging is configured, and a `GoogleSignIn` when Google is configured. |
+| `@core/files` | Upload, read, and delete a File. No `db-prisma` dependency. The app passes a Prisma accessor. A local driver and an S3 driver both ship, and the environment picks one. |
 | `@core/eslint-config`, `@core/typescript-config` | Tooling |
 
 ## OpenAPI type generation

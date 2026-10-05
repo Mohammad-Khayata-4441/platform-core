@@ -37,6 +37,7 @@ model User {
   updatedAt     DateTime       @updatedAt
   refreshTokens RefreshToken[]
   userRoles     UserRole[]
+  files         File[]
 }
 
 /// Hashed refresh session. The cookie holds the raw token; this row stores only the hash.
@@ -91,4 +92,24 @@ model UserRole {
 
   @@id([userId, roleId])
   @@index([roleId])
+}
+
+/// An object uploaded by a User. The uploader is required. There is no tenant column and no store column.
+model File {
+  id           String   @id @default(cuid())
+  /// Original file name, as the uploader sent it.
+  name         String
+  /// Media type, such as `text/plain`.
+  mediaType    String
+  /// Size in bytes.
+  size         Int
+  /// Path the storage driver returned. Local and S3 paths are not the same shape.
+  path         String
+  /// Url the storage driver returned at upload. It is not rewritten later.
+  url          String
+  uploadedById String
+  uploadedBy   User     @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+  createdAt    DateTime @default(now())
+
+  @@index([uploadedById])
 }

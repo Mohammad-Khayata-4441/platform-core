@@ -4,7 +4,10 @@ import { APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ApiExceptionFilter, validationExceptionFactory } from '@core/backend-core';
 import { AuthModule } from '@core/auth/nest';
 import { PrismaModule, PrismaService } from '@core/db-prisma/nest';
+import { FilesModule } from '@core/files/nest';
 import { googleSignInFromEnv } from './auth/google-sign-in.js';
+import { fileDelegate } from './files/file-delegate.js';
+import { storageFromConfig, type FilesConfig } from './files/storage.js';
 import { otpSignInFromEnv } from './auth/otp-sign-in.js';
 import { HealthController } from './health/health.controller.js';
 import { ItemsModule } from './modules/example/items/items.module.js';
@@ -59,6 +62,18 @@ function jwtSecret(value: string | undefined, fallback: string): string {
           ...(otp ? { otp } : {}),
           ...(google ? { google } : {}),
           ...(process.env.GENERATE_SPEC === 'true' ? { syncCatalogOnBoot: false } : {}),
+        };
+      },
+    }),
+    FilesModule.forRootAsync({
+      inject: [PrismaService, ConfigService],
+      useFactory: async (prisma: PrismaService, config: ConfigService) => {
+        const files = config.getOrThrow<FilesConfig>('files');
+        return {
+          files: fileDelegate(prisma),
+          storage: await storageFromConfig(files),
+          maxBytes: files.maxBytes,
+          allowedTypes: files.allowedTypes,
         };
       },
     }),

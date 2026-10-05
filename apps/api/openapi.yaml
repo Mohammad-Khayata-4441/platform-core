@@ -318,6 +318,66 @@ paths:
                 $ref: '#/components/schemas/UserResponseDto'
       tags:
         - auth
+  /files:
+    post:
+      operationId: Files.upload
+      parameters: []
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required:
+                - file
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        '201':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileResponseDto'
+      tags:
+        - files
+  /files/{id}:
+    get:
+      operationId: Files.read
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileResponseDto'
+      tags:
+        - files
+    delete:
+      operationId: Files.remove
+      parameters:
+        - name: id
+          required: true
+          in: path
+          schema:
+            type: string
+      responses:
+        '200':
+          description: ''
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FileResponseDto'
+      tags:
+        - files
   /example/items:
     get:
       operationId: Items.list
@@ -1304,6 +1364,51 @@ components:
           example: User updated
         data:
           $ref: '#/components/schemas/UserViewDto'
+      required:
+        - status
+        - message
+        - data
+    FileViewDto:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+          example: notes.txt
+        type:
+          type: string
+          example: text/plain
+        size:
+          type: number
+          example: 10
+        path:
+          type: string
+          example: memory/notes.txt
+        url:
+          type: string
+          example: https://files.test/notes.txt
+        uploadedById:
+          type: string
+      required:
+        - id
+        - name
+        - type
+        - size
+        - path
+        - url
+        - uploadedById
+    FileResponseDto:
+      type: object
+      properties:
+        status:
+          type: string
+          example: success
+        message:
+          type: string
+          example: File uploaded
+        data:
+          $ref: '#/components/schemas/FileViewDto'
       required:
         - status
         - message

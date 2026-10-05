@@ -18,6 +18,8 @@ import {
   type SessionUserRecord,
   type UserRoleRecord,
 } from '@core/auth/nest';
+import type { FileDelegate, FileRecord, StorageDriver } from '@core/files';
+import { FilesModule } from '@core/files/nest';
 import { demoUserMiddleware } from '../src/common/middleware/demo-user.middleware.js';
 
 /**
@@ -257,7 +259,11 @@ export function createFakeDelegate(): SessionDelegate {
         return count;
       },
       async create(args) {
-        if (userRoles.some((row) => row.userId === args.data.userId && row.roleId === args.data.roleId)) {
+        if (
+          userRoles.some(
+            (row) => row.userId === args.data.userId && row.roleId === args.data.roleId,
+          )
+        ) {
           throw new Error('user role already exists');
         }
         const row: UserRoleRecord = { userId: args.data.userId, roleId: args.data.roleId };
@@ -326,10 +332,42 @@ export function accessClaims(res: Response): { roles: string[]; permissions: str
     permissions?: unknown;
   };
   return {
-    roles: Array.isArray(payload.roles) ? payload.roles.filter((role) => typeof role === 'string') : [],
+    roles: Array.isArray(payload.roles)
+      ? payload.roles.filter((role) => typeof role === 'string')
+      : [],
     permissions: Array.isArray(payload.permissions)
       ? payload.permissions.filter((permission) => typeof permission === 'string')
       : [],
+  };
+}
+
+/** In-memory stand-in for `prisma.file`. Tests observe files only through HTTP. */
+export function createFakeFiles(): FileDelegate {
+  const files: FileRecord[] = [];
+  return {
+    async create(args) {
+      const row: FileRecord = {
+        id: randomUUID(),
+        name: args.data.name,
+        mediaType: args.data.mediaType,
+        size: args.data.size,
+        path: args.data.path,
+        url: args.data.url,
+        uploadedById: args.data.uploadedById,
+        createdAt: new Date(),
+      };
+      files.push(row);
+      return row;
+    },
+    async findFirst(args) {
+      return files.find((row) => row.id === args.where.id) ?? null;
+    },
+    async delete(args) {
+      const index = files.findIndex((row) => row.id === args.where.id);
+      const row = index >= 0 ? files.splice(index, 1)[0] : undefined;
+      if (!row) throw new Error(`file ${args.where.id} not found`);
+      return row;
+    },
   };
 }
 
@@ -340,27 +378,44 @@ export async function createApp(
     extraPermissions?: string[];
     otp?: OtpSignIn;
     google?: GoogleSignIn;
+    files?: {
+      storage: StorageDriver;
+      maxBytes: number;
+      allowedTypes: readonly string[];
+      records?: FileDelegate;
+    };
   },
 ): Promise<INestApplication> {
-  const mod = await Test.createTestingModule({
-    imports: [
-      AuthModule.forRoot({
-        users: delegate.users,
-        refreshTokens: delegate.refreshTokens,
-        permissions: delegate.permissions,
-        roles: delegate.roles,
-        rolePermissions: delegate.rolePermissions,
-        userRoles: delegate.userRoles,
-        transaction: (run) => delegate.transaction(run),
-        extraPermissions: options?.extraPermissions,
-        otp: options?.otp,
-        google: options?.google,
-        accessSecret: 'test-access-secret',
-        refreshSecret: 'test-refresh-secret',
-        accessTtl: '15m',
-        refreshTtl: '7d',
+  const imports = [
+    AuthModule.forRoot({
+      users: delegate.users,
+      refreshTokens: delegate.refreshTokens,
+      permissions: delegate.permissions,
+      roles: delegate.roles,
+      rolePermissions: delegate.rolePermissions,
+      userRoles: delegate.userRoles,
+      transaction: (run) => delegate.transaction(run),
+      extraPermissions: options?.extraPermissions,
+      otp: options?.otp,
+      google: options?.google,
+      accessSecret: 'test-access-secret',
+      refreshSecret: 'test-refresh-secret',
+      accessTtl: '15m',
+      refreshTtl: '7d',
+    }),
+  ];
+  if (options?.files) {
+    imports.push(
+      FilesModule.forRoot({
+        files: options.files.records ?? createFakeFiles(),
+        storage: options.files.storage,
+        maxBytes: options.files.maxBytes,
+        allowedTypes: options.files.allowedTypes,
       }),
-    ],
+    );
+  }
+  const mod = await Test.createTestingModule({
+    imports,
   }).compile();
 
   const app = mod.createNestApplication();

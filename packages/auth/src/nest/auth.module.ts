@@ -64,6 +64,8 @@ export class AuthModule {
   ): DynamicModule {
     return {
       module: AuthModule,
+      // File routes live in another package and still have to verify this cookie.
+      global: true,
       imports: imports ?? [],
       controllers: [AuthController, RolesController, UserRolesController, UsersController],
       providers: [
